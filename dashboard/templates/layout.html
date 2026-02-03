@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="id" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}FAMS Dashboard{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- ================= TAILWIND CDN ================= -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          transitionProperty: {
+            width: 'width'
+          }
+        }
+      }
+    }
+  </script>
+
+  {% block head %}{% endblock %}
+</head>
+
+<body class="h-screen overflow-hidden
+             bg-slate-100 text-slate-800
+             dark:bg-slate-900 dark:text-slate-200">
+
+<div class="flex h-screen">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside id="sidebar"
+         class="fixed md:static z-40 inset-y-0 left-0 w-64
+                bg-gradient-to-b from-blue-600 via-indigo-600 to-purple-700
+                dark:from-slate-900 dark:via-slate-800 dark:to-slate-900
+                text-white
+                transform -translate-x-full md:translate-x-0
+                transition-transform duration-200 ease-in-out
+                flex flex-col h-screen">
+
+    <!-- LOGO -->
+    <div class="h-20 flex items-center px-6
+                border-b border-white/20 dark:border-slate-700 shrink-0">
+      <div class="flex flex-col leading-none">
+        <span class="text-3xl font-extrabold tracking-wider">FAMS</span>
+        <span class="text-xs text-white/70 dark:text-slate-400">
+          Fiber Access Monitoring System
+        </span>
+      </div>
+    </div>
+
+    <!-- ================= MENU ================= -->
+    <nav class="flex-1 px-3 py-5 space-y-1 text-[14.5px] overflow-y-auto">
+
+      <!-- DASHBOARD -->
+      <a href="/"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+         {% if active_page == 'dashboard' %}
+           bg-white text-blue-700 font-bold shadow-lg
+         {% else %}
+           text-white/90 hover:bg-white/20
+         {% endif %}">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+             viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M3 12l9-9 9 9M4 10v10a1 1 0 001 1h5
+                   V14h4v7h5a1 1 0 001-1V10"/>
+        </svg>
+        <span>Dashboard</span>
+      </a>
+
+      <p class="px-4 pt-6 pb-2 text-xs font-semibold uppercase tracking-wider text-white/60">
+        Network
+      </p>
+
+      <!-- OLT -->
+      <a href="/olt/devices"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+         {% if active_page in ['olt_devices','olt_detail'] %}
+           bg-emerald-400 text-emerald-900 font-bold shadow-lg
+         {% else %}
+           text-white/90 hover:bg-white/20
+         {% endif %}">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+             viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+        <span>OLT Devices</span>
+      </a>
+
+      <!-- MIKROTIK -->
+      <a href="/mikrotik"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+         {% if active_page == 'mikrotik' %}
+           bg-yellow-400 text-yellow-900 font-bold shadow-lg
+         {% else %}
+           text-white/90 hover:bg-white/20
+         {% endif %}">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+             viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 4v4m0 8v4m8-8h-4M8 12H4"/>
+        </svg>
+        <span>Mikrotik</span>
+      </a>
+
+      <!-- TR069 -->
+      <a href="/tr069"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+         {% if active_page == 'tr069' %}
+           bg-purple-400 text-purple-900 font-bold shadow-lg
+         {% else %}
+           text-white/90 hover:bg-white/20
+         {% endif %}">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+             viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M4 4v6h6M20 20v-6h-6
+                   M5 19a9 9 0 0014-7
+                   9 9 0 00-14-7"/>
+        </svg>
+        <span>TR-069 / ACS</span>
+      </a>
+
+      <!-- ONT -->
+      <a href="/ont/problem"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+         {% if active_page == 'ont_problem' %}
+           bg-red-400 text-red-900 font-bold shadow-lg
+         {% else %}
+           text-white/90 hover:bg-white/20
+         {% endif %}">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+             viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0
+                   9 9 0 0118 0z"/>
+        </svg>
+        <span>ONT Bermasalah</span>
+      </a>
+
+      <p class="px-4 pt-7 pb-2 text-xs font-semibold uppercase tracking-wider text-white/60">
+        Services
+      </p>
+
+      <!-- TELEGRAM -->
+      <a href="/settings/telegram"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+                text-white/90 hover:bg-white/20">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+             viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M15 17h5l-1.405-4.215
+                   A2.032 2.032 0 0016.704 11H8.296
+                   a2.032 2.032 0 00-1.891 1.785L5 17h5"/>
+        </svg>
+        <span>Telegram Alert</span>
+      </a>
+
+      <!-- LOGOUT -->
+      <button type="button"
+              onclick="openLogoutModal()"
+              class="mt-6 w-full flex items-center gap-3 px-4 py-3 rounded-xl
+                     bg-white/10 text-white font-semibold
+                     hover:bg-red-500 transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+             viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M17 16l4-4m0 0l-4-4m4 4H7
+                   m6 4v1a2 2 0 01-2 2H5
+                   a2 2 0 01-2-2V7a2 2 0 012-2h6
+                   a2 2 0 012 2v1"/>
+        </svg>
+        <span>Logout</span>
+      </button>
+
+    </nav>
+
+    <!-- FOOTER -->
+    <div class="px-5 py-4 border-t border-white/20
+                text-xs text-white/70 shrink-0">
+      © 2026 FAMS — Khas.Network Solutions
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <div class="flex-1 flex flex-col h-screen">
+
+    <!-- ================= TOPBAR ================= -->
+    <header class="h-14 shrink-0 flex items-center px-4 gap-3
+                   bg-white dark:bg-slate-800
+                   border-b border-slate-200 dark:border-slate-700">
+
+      <button onclick="toggleSidebar()"
+              class="md:hidden p-2 rounded
+                     hover:bg-slate-100 dark:hover:bg-slate-700">
+        ☰
+      </button>
+
+      <span class="font-semibold">Fiber Access Monitoring System</span>
+
+      <div class="ml-auto flex items-center gap-3">
+        <button onclick="toggleTheme()"
+                class="p-2 rounded-lg
+                       hover:bg-slate-100 dark:hover:bg-slate-700">
+          <span id="theme-icon">🌙</span>
+        </button>
+
+        <span class="text-xs text-slate-500 dark:text-slate-400">
+          {{ today }}
+        </span>
+      </div>
+    </header>
+
+    <!-- ================= CONTENT ================= -->
+    <main class="flex-1 overflow-y-auto p-6">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<!-- ================= LOGOUT MODAL ================= -->
+<div id="logoutModal"
+     class="fixed inset-0 hidden z-50 items-center justify-center">
+
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+       onclick="closeLogoutModal()"></div>
+
+  <div class="relative bg-white dark:bg-slate-800
+              rounded-2xl shadow-2xl
+              w-full max-w-sm p-6">
+
+    <div class="flex items-center justify-center
+                w-12 h-12 rounded-full
+                bg-red-100 text-red-600 mx-auto">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+           viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M17 16l4-4m0 0l-4-4m4 4H7"/>
+      </svg>
+    </div>
+
+    <h3 class="mt-4 text-lg font-bold text-center">
+      Konfirmasi Logout
+    </h3>
+
+    <p class="mt-2 text-sm text-center text-slate-500 dark:text-slate-400">
+      Kamu yakin ingin keluar dari sistem dashboard?
+    </p>
+
+    <div class="mt-6 flex gap-3 justify-center">
+      <button type="button"
+              onclick="closeLogoutModal()"
+              class="px-4 py-2 rounded-lg
+                     bg-slate-200 hover:bg-slate-300
+                     dark:bg-slate-700 dark:hover:bg-slate-600">
+        Batal
+      </button>
+
+      <form action="/logout" method="post">
+        <button type="submit"
+                class="px-4 py-2 rounded-lg
+                       bg-red-600 hover:bg-red-700
+                       text-white font-semibold">
+          Ya, Logout
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SCRIPT ================= -->
+<script>
+const sidebar = document.getElementById('sidebar')
+
+function toggleSidebar(){
+  sidebar.classList.toggle('-translate-x-full')
+}
+
+function setTheme(mode){
+  const html = document.documentElement
+  const icon = document.getElementById('theme-icon')
+
+  if(mode === 'dark'){
+    html.classList.add('dark')
+    icon.textContent = '☀️'
+  } else {
+    html.classList.remove('dark')
+    icon.textContent = '🌙'
+  }
+  localStorage.setItem('theme', mode)
+}
+
+function toggleTheme(){
+  setTheme(
+    document.documentElement.classList.contains('dark')
+      ? 'light'
+      : 'dark'
+  )
+}
+
+function openLogoutModal(){
+  const m = document.getElementById("logoutModal")
+  m.classList.remove("hidden")
+  m.classList.add("flex")
+}
+
+function closeLogoutModal(){
+  const m = document.getElementById("logoutModal")
+  m.classList.add("hidden")
+  m.classList.remove("flex")
+}
+
+setTheme(localStorage.getItem('theme') || 'light')
+</script>
+
+</body>
+</html>

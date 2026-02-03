@@ -1,0 +1,115 @@
+{% extends "layout.html" %}
+{% block title %}Tambah Mikrotik{% endblock %}
+
+{% block content %}
+
+<!-- ================= HEADER ================= -->
+<div class="mb-8">
+  <h1 class="text-3xl font-extrabold
+             bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400
+             bg-clip-text text-transparent">
+    Tambah Mikrotik
+  </h1>
+  <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+    Tambahkan router Mikrotik untuk monitoring API & SNMP
+  </p>
+</div>
+
+<!-- ================= FORM CARD ================= -->
+<div class="max-w-xl rounded-3xl
+            bg-white dark:bg-slate-800
+            border border-slate-200 dark:border-slate-700
+            shadow-xl p-6">
+
+<form method="post" class="space-y-6">
+
+  <!-- NAME -->
+  <div>
+    <label class="block text-sm font-semibold mb-1">
+      Nama Router
+    </label>
+    <input name="name" required
+           placeholder="ROUTER-POP-WLINGI"
+           class="w-full px-4 py-2 rounded-lg
+                  border border-slate-300
+                  focus:ring-2 focus:ring-blue-500
+                  focus:outline-none">
+  </div>
+
+  <!-- HOST -->
+  <div>
+    <label class="block text-sm font-semibold mb-1">
+      Host / IP Address
+    </label>
+    <input name="host" required
+           placeholder="172.16.81.1"
+           class="w-full px-4 py-2 rounded-lg
+                  border border-slate-300
+                  focus:ring-2 focus:ring-blue-500
+                  focus:outline-none">
+  </div>
+
+  <!-- API PORT -->
+  <div>
+    <label class="block text-sm font-semibold mb-1">
+      API Port
+    </label>
+    <input name="api_port" type="number" value="8728"
+           class="w-full px-4 py-2 rounded-lg
+                  border border-slate-300
+                  focus:ring-2 focus:ring-blue-500
+                  focus:outline-none">
+  </div>
+
+  <!-- API USER -->
+  <div>
+    <label class="block text-sm font-semibold mb-1">
+      API Username
+    </label>
+    <input name="api_user" required
+           placeholder="dashboard"
+           class="w-full px-4 py-2 rounded-lg
+                  border border-slate-300
+                  focus:ring-2 focus:ring-blue-500
+                  focus:outline-none">
+  </div>
+
+  <!-- API PASSWORD -->
+  <div>
+    <label class="block text-sm font-semibold mb-1">
+      API Password
+    </label>
+    <input name="api_pass" type="password" required
+           class="w-full px-4 py-2 rounded-lg
+                  border border-slate-300
+                  focus:ring-2 focus:ring-blue-500
+                  focus:outline-none">
+  </div>
+
+  <!-- ACTION -->
+  <div class="flex justify-end gap-3 pt-2">
+
+    <a href="/mikrotik"
+       class="inline-flex items-center justify-center
+              px-6 py-2.5 rounded-xl
+              border border-slate-300
+              text-slate-700 font-semibold
+              hover:bg-slate-100">
+      Batal
+    </a>
+
+    <button type="submit"
+            class="inline-flex items-center gap-2
+                   px-8 py-3 rounded-xl
+                   bg-gradient-to-r from-blue-600 to-indigo-600
+                   hover:from-blue-700 hover:to-indigo-700
+                   text-white font-bold shadow-lg">
+      💾 Simpan
+    </button>
+
+  </div>
+
+</form>
+</div>
+
+{% endblock %}

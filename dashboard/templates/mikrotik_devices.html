@@ -1,0 +1,173 @@
+{% extends "layout.html" %}
+{% block title %}Mikrotik Devices{% endblock %}
+
+{% block content %}
+
+<!-- ================= HEADER ================= -->
+<div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+  <div>
+    <h1 class="text-3xl font-extrabold
+               bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400
+               bg-clip-text text-transparent">
+      Mikrotik Devices
+    </h1>
+    <p class="text-sm text-slate-500 dark:text-slate-400">
+      Monitoring Router & SNMP Connectivity
+    </p>
+  </div>
+
+  <a href="/mikrotik/add"
+     class="inline-flex items-center gap-2
+            px-6 py-3 rounded-xl
+            bg-gradient-to-r from-blue-600 to-indigo-600
+            hover:from-blue-700 hover:to-indigo-700
+            text-white font-bold shadow-lg">
+    ➕ Tambah Mikrotik
+  </a>
+
+</div>
+
+<!-- ================= TABLE ================= -->
+<div class="rounded-2xl overflow-hidden shadow-xl
+            bg-white dark:bg-slate-800
+            border border-slate-200 dark:border-slate-700">
+
+<table class="w-full text-sm">
+
+  <thead class="bg-slate-100 dark:bg-slate-900
+                text-slate-600 dark:text-slate-400
+                text-xs uppercase">
+    <tr>
+      <th class="px-6 py-4 text-left">Router</th>
+      <th class="px-6 py-4 text-left">Host</th>
+      <th class="px-6 py-4 text-center">Status</th>
+      <th class="px-6 py-4 text-center">Uptime</th>
+      <th class="px-6 py-4 text-center">Last Seen</th>
+      <th class="px-6 py-4 text-center">Aksi</th>
+    </tr>
+  </thead>
+
+  <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+  {% for r in rows %}
+    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700">
+
+      <!-- ROUTER -->
+      <td class="px-6 py-4">
+        <div class="font-semibold text-slate-800 dark:text-slate-100">
+          {{ r.name }}
+        </div>
+        <div class="text-xs text-slate-500">
+          {{ r.sys_name or "-" }}
+        </div>
+      </td>
+
+      <!-- HOST -->
+      <td class="px-6 py-4 font-mono text-slate-600 dark:text-slate-300">
+        {{ r.host }}
+      </td>
+
+      <!-- STATUS -->
+      <td class="px-6 py-4 text-center">
+        {% if r.age is not none and r.age < 180 %}
+          <span class="inline-flex items-center gap-1
+                       px-3 py-1 rounded-full
+                       bg-emerald-100 text-emerald-700
+                       text-xs font-semibold">
+            ● Online
+          </span>
+        {% else %}
+          <span class="inline-flex items-center gap-1
+                       px-3 py-1 rounded-full
+                       bg-red-100 text-red-600
+                       text-xs font-semibold">
+            ● Offline
+          </span>
+        {% endif %}
+      </td>
+
+      <!-- UPTIME -->
+      <td class="px-6 py-4 text-center text-xs text-slate-600 dark:text-slate-300">
+        {% if r.sys_uptime %}
+          {{ (r.sys_uptime // 8640000) }} hari
+        {% else %}
+          -
+        {% endif %}
+      </td>
+
+      <!-- LAST SEEN -->
+      <td class="px-6 py-4 text-center text-xs text-slate-500">
+        {{ r.last_seen or "-" }}
+      </td>
+
+      <!-- ACTION -->
+      <td class="px-6 py-4 text-center">
+        <div class="inline-flex flex-wrap justify-center gap-2">
+
+          <!-- TEST SNMP -->
+          <form method="post" action="/mikrotik/{{ r.id }}/test-snmp">
+            <button type="submit"
+                    class="inline-flex items-center gap-2
+                           px-3 py-2 rounded-lg
+                           bg-indigo-600 text-white
+                           hover:bg-indigo-700
+                           text-xs font-bold shadow-sm">
+              🔍 Test SNMP
+            </button>
+          </form>
+
+          <!-- DETAIL -->
+          <a href="/mikrotik/{{ r.id }}"
+             class="inline-flex items-center gap-2
+                    px-3 py-2 rounded-lg
+                    bg-blue-600 text-white
+                    hover:bg-blue-700
+                    text-xs font-bold shadow-sm">
+            👁️ Detail
+          </a>
+
+          <!-- EDIT -->
+          <a href="/mikrotik/{{ r.id }}/edit"
+             class="inline-flex items-center gap-2
+                    px-3 py-2 rounded-lg
+                    bg-amber-500 text-white
+                    hover:bg-amber-600
+                    text-xs font-bold shadow-sm">
+            ✏️ Edit
+          </a>
+
+          <!-- DELETE -->
+          <form method="post"
+                action="/mikrotik/{{ r.id }}/delete"
+                onsubmit="return confirm('Yakin ingin menghapus Mikrotik ini?')">
+            <button type="submit"
+                    class="inline-flex items-center gap-2
+                           px-3 py-2 rounded-lg
+                           bg-red-600 text-white
+                           hover:bg-red-700
+                           text-xs font-bold shadow-sm">
+              ❌ Hapus
+            </button>
+          </form>
+
+        </div>
+      </td>
+
+    </tr>
+  {% endfor %}
+
+  {% if rows|length == 0 %}
+    <tr>
+      <td colspan="6"
+          class="px-6 py-12 text-center
+                 text-slate-400 dark:text-slate-500">
+        Belum ada perangkat Mikrotik
+      </td>
+    </tr>
+  {% endif %}
+  </tbody>
+
+</table>
+</div>
+
+{% endblock %}

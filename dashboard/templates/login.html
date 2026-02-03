@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>Login | FAMS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
+</head>
+
+<body class="min-h-screen flex items-center justify-center
+             bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
+
+  <div class="w-full max-w-sm px-6">
+
+    <!-- LOGIN CARD -->
+    <div class="bg-white/95 backdrop-blur
+                rounded-2xl shadow-2xl
+                p-8">
+
+      <!-- LOGO -->
+      <div class="text-center mb-6">
+        <div class="text-4xl font-extrabold tracking-wider
+                    bg-gradient-to-r from-blue-600 to-indigo-600
+                    bg-clip-text text-transparent">
+          FAMS
+        </div>
+        <p class="text-sm text-slate-500 mt-1">
+          Fiber Access Monitoring System
+        </p>
+      </div>
+
+      <!-- ================= FLASH MESSAGE ================= -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="mb-4 space-y-2">
+            {% for category, message in messages %}
+              <div class="px-4 py-3 rounded-xl text-sm font-semibold
+                {% if category == 'error' %}
+                  bg-red-100 text-red-700
+                {% elif category == 'success' %}
+                  bg-emerald-100 text-emerald-700
+                {% else %}
+                  bg-slate-100 text-slate-700
+                {% endif %}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      <!-- ================================================= -->
+
+      <!-- LOGIN FORM -->
+      <form method="post" class="space-y-5">
+
+        <!-- USERNAME -->
+        <div>
+          <label class="block text-sm font-semibold text-slate-600 mb-1">
+            Username
+          </label>
+          <input name="username"
+                 required
+                 autofocus
+                 placeholder="Masukkan username"
+                 class="w-full px-4 py-2.5 rounded-xl
+                        border border-slate-300
+                        focus:ring-2 focus:ring-blue-500
+                        focus:outline-none">
+        </div>
+
+        <!-- PASSWORD -->
+        <div>
+          <label class="block text-sm font-semibold text-slate-600 mb-1">
+            Password
+          </label>
+          <input name="password"
+                 type="password"
+                 required
+                 placeholder="Masukkan password"
+                 class="w-full px-4 py-2.5 rounded-xl
+                        border border-slate-300
+                        focus:ring-2 focus:ring-blue-500
+                        focus:outline-none">
+        </div>
+
+        <!-- BUTTON -->
+        <button type="submit"
+                class="w-full py-3 rounded-xl
+                       bg-gradient-to-r from-blue-600 to-indigo-600
+                       hover:from-blue-700 hover:to-indigo-700
+                       text-white font-bold
+                       shadow-lg transition">
+          🔐 Login
+        </button>
+
+      </form>
+
+      <!-- FOOTER -->
+      <div class="text-center text-xs text-slate-400 pt-6">
+        © 2026 FAMS • Secure Access
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

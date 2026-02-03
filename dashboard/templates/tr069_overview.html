@@ -1,0 +1,217 @@
+{% extends "layout.html" %}
+{% block title %}TR-069 Overview{% endblock %}
+
+{% block content %}
+
+<!-- HEADER -->
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100">
+    TR-069 Overview
+  </h1>
+  <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+    Server:
+    <span class="font-semibold text-slate-700 dark:text-slate-200">
+      {{ acs.name }}
+    </span>
+    · {{ acs.base_url }}
+  </p>
+</div>
+
+<!-- KPI -->
+<!-- KPI OVERVIEW -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+
+  <!-- TOTAL ONT -->
+  <div class="relative overflow-hidden rounded-2xl
+              bg-gradient-to-r from-blue-500 to-indigo-600
+              text-white p-6 shadow-lg">
+
+    <!-- ICON -->
+    <svg class="absolute right-4 top-4 w-24 h-24 opacity-20"
+         fill="none" stroke="currentColor" stroke-width="1.5"
+         viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M4 4h16v6H4V4zm0 10h16v6H4v-6z
+               M8 8h.01M8 18h.01"/>
+    </svg>
+
+    <p class="text-sm font-medium opacity-90">
+      Total ONT
+    </p>
+    <p class="mt-2 text-4xl font-extrabold tracking-wide">
+      {{ total }}
+    </p>
+  </div>
+
+  <!-- ONLINE -->
+  <div class="relative overflow-hidden rounded-2xl
+              bg-gradient-to-r from-emerald-500 to-green-600
+              text-white p-6 shadow-lg">
+
+    <!-- ICON -->
+    <svg class="absolute right-4 top-4 w-24 h-24 opacity-20"
+         fill="none" stroke="currentColor" stroke-width="1.5"
+         viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M9 12l2 2 4-4
+               M12 22C6.477 22 2 17.523 2 12
+               S6.477 2 12 2
+               s10 4.477 10 10
+               -4.477 10-10 10z"/>
+    </svg>
+
+    <p class="text-sm font-medium opacity-90">
+      ONT Online
+    </p>
+    <p class="mt-2 text-4xl font-extrabold tracking-wide">
+      {{ online }}
+    </p>
+  </div>
+
+  <!-- OFFLINE -->
+  <div class="relative overflow-hidden rounded-2xl
+              bg-gradient-to-r from-rose-500 to-red-600
+              text-white p-6 shadow-lg">
+
+    <!-- ICON -->
+    <svg class="absolute right-4 top-4 w-24 h-24 opacity-20"
+         fill="none" stroke="currentColor" stroke-width="1.5"
+         viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M18.364 5.636l-12.728 12.728
+               M5.636 5.636l12.728 12.728"/>
+    </svg>
+
+    <p class="text-sm font-medium opacity-90">
+      ONT Offline
+    </p>
+    <p class="mt-2 text-4xl font-extrabold tracking-wide">
+      {{ offline }}
+    </p>
+  </div>
+
+</div>
+
+
+<!-- CHART GRID -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+
+  {% set card = "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow p-4" %}
+
+  <div class="{{ card }}">
+    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
+      ONT Manufacture
+    </h3>
+    <canvas id="chartManufacture" height="160"></canvas>
+  </div>
+
+  <div class="{{ card }}">
+    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
+      Optical RX
+    </h3>
+    <canvas id="chartRx" height="160"></canvas>
+  </div>
+
+  <div class="{{ card }}">
+    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
+      ONT Status
+    </h3>
+    <canvas id="chartStatus" height="160"></canvas>
+  </div>
+
+  <div class="{{ card }}">
+    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
+      Optical Temp
+    </h3>
+    <canvas id="chartTemp" height="160"></canvas>
+  </div>
+
+  <div class="{{ card }}">
+    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
+      SSID Active
+    </h3>
+    <canvas id="chartWifi" height="160"></canvas>
+  </div>
+
+</div>
+
+<!-- CHART JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const isDark = document.documentElement.classList.contains('dark')
+
+const baseOptions = {
+  cutout: '65%',
+  plugins: {
+    legend: {
+      position: 'bottom',
+      labels: {
+        boxWidth: 10,
+        color: isDark ? '#cbd5f5' : '#334155'
+      }
+    }
+  }
+}
+
+new Chart(chartManufacture, {
+  type: 'doughnut',
+  data: {
+    labels: ['Huawei','ZTE','Zimlink','GM220-S','Other'],
+    datasets: [{
+      data: [67, 9, 14, 99, 2],
+      backgroundColor: ['#06b6d4','#facc15','#22c55e','#fb923c','#64748b']
+    }]
+  },
+  options: baseOptions
+})
+
+new Chart(chartRx, {
+  type: 'doughnut',
+  data: {
+    labels: ['Bagus','Lumayan','Kritis'],
+    datasets: [{
+      data: [170, 21, 0],
+      backgroundColor: ['#22c55e','#facc15','#ef4444']
+    }]
+  },
+  options: baseOptions
+})
+
+new Chart(chartStatus, {
+  type: 'doughnut',
+  data: {
+    labels: ['Online','Offline'],
+    datasets: [{
+      data: [{{ online }}, {{ offline }}],
+      backgroundColor: ['#22c55e','#ef4444']
+    }]
+  },
+  options: baseOptions
+})
+
+new Chart(chartTemp, {
+  type: 'doughnut',
+  data: {
+    labels: ['Baik','Normal','Warning'],
+    datasets: [{
+      data: [119, 69, 1],
+      backgroundColor: ['#22c55e','#06b6d4','#facc15']
+    }]
+  },
+  options: baseOptions
+})
+
+new Chart(chartWifi, {
+  type: 'doughnut',
+  data: {
+    labels: ['Normal','Medium','Over','Empty'],
+    datasets: [{
+      data: [114, 43, 5, 29],
+      backgroundColor: ['#22c55e','#facc15','#ef4444','#64748b']
+    }]
+  },
+  options: baseOptions
+})
+</script>
+
+{% endblock %}

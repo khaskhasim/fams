@@ -1,0 +1,311 @@
+{% extends "layout.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- ================= HEADER ================= -->
+<div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+  <div>
+    <h1 class="text-3xl font-extrabold
+               bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400
+               bg-clip-text text-transparent">
+      Network Dashboard
+    </h1>
+    <p class="text-sm text-slate-500 dark:text-slate-400">
+      Monitoring Core Access & Optical Network
+    </p>
+  </div>
+
+
+</div>
+
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+
+  <!-- TOTAL OLT -->
+  <div class="relative overflow-hidden rounded-2xl p-6 text-white shadow-lg
+              bg-gradient-to-br from-blue-500 to-indigo-600">
+    <div class="text-sm opacity-90">Total OLT</div>
+    <div class="mt-2 text-4xl font-bold">{{ olt_total }}</div>
+
+    <!-- ICON NETWORK DEVICE -->
+    <svg class="absolute bottom-4 right-4 w-24 h-24 opacity-15 pointer-events-none"
+         fill="none" stroke="currentColor"
+         viewBox="0 0 24 24" stroke-width="1.3">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M4 6h16M4 10h16M4 14h16M4 18h16
+               M7 6v12M17 6v12"/>
+    </svg>
+  </div>
+
+  <!-- OLT ONLINE -->
+  <div class="relative overflow-hidden rounded-2xl p-6 text-white shadow-lg
+              bg-gradient-to-br from-emerald-500 to-green-600">
+    <div class="text-sm opacity-90">OLT Online</div>
+    <div class="mt-2 text-4xl font-bold">{{ olt_online }}</div>
+
+    <!-- ICON CONNECTED -->
+    <svg class="absolute bottom-4 right-4 w-24 h-24 opacity-15 pointer-events-none"
+         fill="none" stroke="currentColor"
+         viewBox="0 0 24 24" stroke-width="1.3">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M8 12l2 2 4-4
+               M12 3a9 9 0 019 9"/>
+    </svg>
+  </div>
+
+  <!-- OLT OFFLINE -->
+  <div class="relative overflow-hidden rounded-2xl p-6 text-white shadow-lg
+              bg-gradient-to-br from-red-500 to-rose-600">
+    <div class="text-sm opacity-90">OLT Offline</div>
+    <div class="mt-2 text-4xl font-bold">{{ olt_offline }}</div>
+
+    <!-- ICON NETWORK ERROR -->
+    <svg class="absolute bottom-4 right-4 w-24 h-24 opacity-15 pointer-events-none"
+         fill="none" stroke="currentColor"
+         viewBox="0 0 24 24" stroke-width="1.3">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M18.364 5.636L5.636 18.364
+               M12 3a9 9 0 019 9"/>
+    </svg>
+  </div>
+
+</div>
+<h2 class="text-xs font-semibold uppercase mb-3 text-slate-500 dark:text-slate-400">
+  Optical Network Unit (ONU)
+</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+
+  <!-- TOTAL ONU -->
+  <div class="relative overflow-hidden rounded-2xl p-6 text-white shadow-lg
+              bg-gradient-to-br from-cyan-500 to-blue-500">
+    <div class="text-sm opacity-90">Total ONU</div>
+    <div class="mt-2 text-4xl font-bold">{{ ont_total }}</div>
+
+    <div class="mt-4 h-2 bg-white/30 rounded">
+      <div class="h-full bg-white rounded w-full"></div>
+    </div>
+
+    <!-- ICON FIBER -->
+    <svg class="absolute bottom-4 right-4 w-24 h-24 opacity-15 pointer-events-none"
+         fill="none" stroke="currentColor"
+         viewBox="0 0 24 24" stroke-width="1.3">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M3 12h6l3 6 3-12 3 6h6"/>
+    </svg>
+  </div>
+
+  <!-- ONU ONLINE -->
+  <div class="relative overflow-hidden rounded-2xl p-6 text-white shadow-lg
+              bg-gradient-to-br from-green-400 to-emerald-600">
+    <div class="text-sm opacity-90">ONU Online</div>
+    <div class="mt-2 text-4xl font-bold">{{ ont_online }}</div>
+
+    <div class="mt-4 h-2 bg-white/30 rounded">
+      <div class="h-full bg-white rounded"
+           style="width: {{ ont_online_percent }}%"></div>
+    </div>
+
+    <!-- ICON SIGNAL -->
+    <svg class="absolute bottom-4 right-4 w-24 h-24 opacity-15 pointer-events-none"
+         fill="none" stroke="currentColor"
+         viewBox="0 0 24 24" stroke-width="1.3">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M2 20h2M6 16h2M10 12h2M14 8h2M18 4h2"/>
+    </svg>
+  </div>
+
+  <!-- ONU OFFLINE -->
+  <div class="relative overflow-hidden rounded-2xl p-6 text-white shadow-lg
+              bg-gradient-to-br from-orange-500 to-red-600">
+    <div class="text-sm opacity-90">ONU Offline</div>
+    <div class="mt-2 text-4xl font-bold">{{ ont_offline }}</div>
+
+    <div class="mt-4 h-2 bg-white/30 rounded">
+      <div class="h-full bg-white rounded"
+           style="width: {{ ont_offline_percent }}%"></div>
+    </div>
+
+    <!-- ICON SIGNAL LOST -->
+    <svg class="absolute bottom-4 right-4 w-24 h-24 opacity-15 pointer-events-none"
+         fill="none" stroke="currentColor"
+         viewBox="0 0 24 24" stroke-width="1.3">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M3 3l18 18
+               M2 20h2M6 16h2M10 12h2"/>
+    </svg>
+  </div>
+
+</div>
+
+
+
+<!-- ================= MOBILE CARD ONU BERMASALAH ================= -->
+<div class="space-y-4 md:hidden">
+
+{% for o in ont_problem_list %}
+<div class="rounded-2xl p-4 shadow-lg
+            border
+            {% if o.status != 'ONLINE' %}
+              bg-red-50 border-red-200
+            {% else %}
+              bg-white border-slate-200
+            {% endif %}">
+
+  <!-- HEADER -->
+  <div class="flex justify-between items-start mb-2">
+    <div>
+      <div class="font-bold text-slate-800">
+        {{ o.name or 'ONU ' ~ o.onu_id }}
+      </div>
+      <div class="text-xs text-slate-500">
+        {{ o.olt }} • PON {{ o.pon }} : {{ o.onu_id }}
+      </div>
+    </div>
+
+    <span class="px-3 py-1 rounded-full text-xs font-bold
+      {% if o.status == 'ONLINE' %}
+        bg-emerald-100 text-emerald-700
+      {% else %}
+        bg-red-100 text-red-700
+      {% endif %}">
+      {{ o.status }}
+    </span>
+  </div>
+
+  <!-- INFO -->
+  <div class="text-sm space-y-1">
+    <div class="flex justify-between">
+      <span class="text-slate-500">MAC</span>
+      <span class="font-mono text-slate-700">
+        {{ o.mac or '-' }}
+      </span>
+    </div>
+
+    <div class="flex justify-between">
+      <span class="text-slate-500">Diagnosis</span>
+      <span class="font-semibold text-red-600">
+        {{ o.diagnosis.replace('_',' ').title() if o.diagnosis else '-' }}
+      </span>
+    </div>
+
+    <div class="flex justify-between text-xs text-slate-400 pt-1">
+      <span>Last Update</span>
+      <span>{{ o.last_update or '-' }}</span>
+    </div>
+  </div>
+
+</div>
+{% else %}
+<div class="text-center text-slate-400 py-10">
+  🎉 Tidak ada ONU bermasalah
+</div>
+{% endfor %}
+
+</div>
+
+
+
+<!-- ================= ONU BERMASALAH ================= -->
+<div class="rounded-2xl overflow-hidden shadow-xl
+            bg-white dark:bg-slate-800
+            border border-slate-200 dark:border-slate-700">
+
+  <!-- HEADER ALERT -->
+  <div class="px-6 py-4 flex items-center justify-between
+              bg-gradient-to-r from-red-500 via-rose-500 to-pink-600
+              text-white">
+    <div class="flex items-center gap-3">
+      <span class="text-lg">🚨</span>
+      <span class="font-bold text-lg">
+        ONU Bermasalah (Terbaru)
+      </span>
+    </div>
+    <span class="text-sm bg-white/20 px-3 py-1 rounded-full">
+      {{ ont_offline }} Offline
+    </span>
+  </div>
+
+  <!-- TABLE -->
+  
+  <table class="hidden md:table w-full text-sm">
+
+    <thead class="bg-slate-100 dark:bg-slate-900
+                  text-slate-600 dark:text-slate-400
+                  text-xs uppercase">
+      <tr>
+        <th class="px-6 py-3 text-left">OLT</th>
+        <th class="px-6 py-3 text-left">ONU</th>
+        <th class="px-6 py-3 text-left">MAC / SN</th>
+        <th class="px-6 py-3 text-center">Status</th>
+        <th class="px-6 py-3 text-left">Diagnosis</th>
+        <th class="px-6 py-3 text-left">Last Update</th>
+      </tr>
+    </thead>
+
+    <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+
+      {% for o in ont_problem_list %}
+      <tr class="
+        {% if o.status != 'ONLINE' %}
+          bg-red-50 dark:bg-red-500/10
+        {% else %}
+          hover:bg-slate-50 dark:hover:bg-slate-700
+        {% endif %}
+      ">
+        <td class="px-6 py-3 font-semibold">
+          {{ o.olt }}
+        </td>
+
+        <td class="px-6 py-3">
+          <div class="font-semibold text-slate-800 dark:text-slate-100">
+            {{ o.name or "-" }}
+          </div>
+          <div class="text-xs text-slate-500 dark:text-slate-400">
+            PON {{ o.pon }} : {{ o.onu_id }}
+          </div>
+        </td>
+
+        <td class="px-6 py-3 font-mono text-slate-600 dark:text-slate-300">
+          {{ o.mac or "-" }}
+        </td>
+
+        <td class="px-6 py-3 text-center">
+          <span class="px-3 py-1 rounded-full text-xs font-bold
+            {% if o.status == 'ONLINE' %}
+              bg-emerald-100 text-emerald-700
+              dark:bg-emerald-500/20 dark:text-emerald-400
+            {% else %}
+              bg-red-100 text-red-700
+              dark:bg-red-500/20 dark:text-red-400
+            {% endif %}">
+            {{ o.status }}
+          </span>
+        </td>
+
+        <td class="px-6 py-3 text-slate-700 dark:text-slate-300">
+          {{ o.diagnosis.replace('_',' ').title() if o.diagnosis else '-' }}
+        </td>
+
+        <td class="px-6 py-3 text-slate-500 dark:text-slate-400">
+          {{ o.last_update or "-" }}
+        </td>
+      </tr>
+
+      {% else %}
+      <tr>
+        <td colspan="6"
+            class="px-6 py-10 text-center
+                   text-slate-400 dark:text-slate-500">
+          🎉 Tidak ada ONU bermasalah
+        </td>
+      </tr>
+      {% endfor %}
+
+    </tbody>
+  </table>
+
+</div>
+
+{% endblock %}

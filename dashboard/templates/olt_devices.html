@@ -1,0 +1,509 @@
+{% extends "layout.html" %}
+{% block title %}OLT Devices{% endblock %}
+
+{% block content %}
+
+<!-- ================= HEADER ================= -->
+<div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+  <div>
+    <h1 class="text-3xl font-extrabold
+               bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400
+               bg-clip-text text-transparent">
+      OLT Devices
+    </h1>
+    <p class="text-sm text-slate-500 dark:text-slate-400">
+      Network Access • Optical Line Terminal
+    </p>
+  </div>
+
+  <a href="/olt/add"
+     class="inline-flex items-center gap-2 px-6 py-3 rounded-xl
+            bg-gradient-to-r from-blue-600 to-indigo-600
+            hover:from-blue-700 hover:to-indigo-700
+            text-white font-semibold shadow-lg">
+    ➕ Tambah OLT
+  </a>
+</div>
+
+<!-- ================= SUMMARY ================= -->
+<!-- ================= KPI OLT ================= -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+
+  <!-- TOTAL OLT -->
+  <div class="relative overflow-hidden rounded-2xl
+              bg-gradient-to-r from-blue-500 to-indigo-600
+              text-white p-6 shadow-lg">
+
+    <!-- ICON -->
+    <svg class="absolute right-4 top-4 w-24 h-24 opacity-20"
+         fill="none" stroke="currentColor" stroke-width="1.5"
+         viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M4 4h16v6H4V4zm0 10h16v6H4v-6z
+               M8 8h.01M8 18h.01"/>
+    </svg>
+
+    <p class="text-sm font-medium opacity-90">
+      Total OLT
+    </p>
+    <p class="mt-2 text-4xl font-extrabold tracking-wide">
+      {{ olts|length }}
+    </p>
+  </div>
+
+  <!-- OLT ONLINE -->
+  <div class="relative overflow-hidden rounded-2xl
+              bg-gradient-to-r from-emerald-500 to-green-600
+              text-white p-6 shadow-lg">
+
+    <!-- ICON -->
+    <svg class="absolute right-4 top-4 w-24 h-24 opacity-20"
+         fill="none" stroke="currentColor" stroke-width="1.5"
+         viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M9 12l2 2 4-4
+               M12 22C6.477 22 2 17.523 2 12
+               S6.477 2 12 2
+               s10 4.477 10 10
+               -4.477 10-10 10z"/>
+    </svg>
+
+    <p class="text-sm font-medium opacity-90">
+      OLT Online
+    </p>
+    <p class="mt-2 text-4xl font-extrabold tracking-wide">
+      {{ olt_status.values()|select|list|length }}
+    </p>
+  </div>
+
+  <!-- OLT OFFLINE -->
+  <div class="relative overflow-hidden rounded-2xl
+              bg-gradient-to-r from-rose-500 to-red-600
+              text-white p-6 shadow-lg">
+
+    <!-- ICON -->
+    <svg class="absolute right-4 top-4 w-24 h-24 opacity-20"
+         fill="none" stroke="currentColor" stroke-width="1.5"
+         viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M18.364 5.636l-12.728 12.728
+               M5.636 5.636l12.728 12.728"/>
+    </svg>
+
+    <p class="text-sm font-medium opacity-90">
+      OLT Offline
+    </p>
+    <p class="mt-2 text-4xl font-extrabold tracking-wide">
+      {{ olts|length - (olt_status.values()|select|list|length) }}
+    </p>
+  </div>
+
+</div>
+
+
+<!-- ================= MOBILE CARD OLT ================= -->
+<div class="space-y-4 md:hidden">
+
+{% for o in olts %}
+<div class="rounded-2xl p-4 shadow-lg border
+            {% if olt_status[o.id] %}
+              bg-white border-slate-200
+            {% else %}
+              bg-red-50 border-red-200
+            {% endif %}">
+
+  <!-- HEADER -->
+  <div class="flex justify-between items-start mb-3">
+    <div>
+      <div class="font-bold text-slate-800 text-lg">
+        {{ o.name }}
+      </div>
+      <div class="text-xs text-slate-500">
+        {{ o.brand|upper }} • {{ o.host }}
+      </div>
+    </div>
+
+    <span class="px-3 py-1 rounded-full text-xs font-bold
+      {% if olt_status[o.id] %}
+        bg-emerald-100 text-emerald-700
+      {% else %}
+        bg-red-100 text-red-700
+      {% endif %}">
+      {% if olt_status[o.id] %} ONLINE {% else %} OFFLINE {% endif %}
+    </span>
+  </div>
+
+  <!-- ACTION -->
+  <div class="grid grid-cols-2 gap-2">
+
+    {% if olt_status[o.id] %}
+    <button type="button"
+            onclick="startSync({{ o.id }})"
+            class="w-full px-3 py-2 rounded-lg text-sm font-semibold
+                   bg-indigo-600 text-white hover:bg-indigo-700">
+      🔄 Sync
+    </button>
+    {% else %}
+    <div class="w-full px-3 py-2 rounded-lg text-sm text-center
+                bg-slate-200 text-slate-500">
+      ⛔ Offline
+    </div>
+    {% endif %}
+
+    <a href="/olt/{{ o.id }}"
+       class="w-full px-3 py-2 rounded-lg text-sm font-semibold text-center
+              bg-blue-600 text-white hover:bg-blue-700">
+      Detail
+    </a>
+
+    <a href="/olt/{{ o.id }}/edit"
+       class="w-full px-3 py-2 rounded-lg text-sm font-semibold text-center
+              bg-amber-500 text-white hover:bg-amber-600">
+      Edit
+    </a>
+
+    <button type="button"
+            onclick="openDeleteModal('{{ o.id }}','{{ o.name }}')"
+            class="w-full px-3 py-2 rounded-lg text-sm font-semibold
+                   bg-red-600 text-white hover:bg-red-700">
+      Hapus
+    </button>
+
+  </div>
+
+</div>
+{% endfor %}
+
+{% if olts|length == 0 %}
+<div class="text-center text-slate-400 py-10">
+  Belum ada OLT
+</div>
+{% endif %}
+
+</div>
+
+
+<!-- ================= TABLE ================= -->
+<div class="rounded-2xl overflow-hidden shadow-xl
+            bg-white dark:bg-slate-800
+            border border-slate-200 dark:border-slate-700">
+
+
+<table class="hidden md:table w-full text-sm">
+
+<thead class="bg-slate-100 dark:bg-slate-900
+              text-slate-600 dark:text-slate-400
+              text-xs uppercase">
+<tr>
+  <th class="px-6 py-4 text-left">Perangkat</th>
+  <th class="px-6 py-4 text-left">Alamat</th>
+  <th class="px-6 py-4 text-left">Vendor</th>
+  <th class="px-6 py-4 text-center">Status</th>
+  <th class="px-6 py-4 text-center">Aksi</th>
+</tr>
+</thead>
+
+<tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+{% for o in olts %}
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-700">
+
+  <td class="px-6 py-4 font-semibold">
+    <a href="/olt/{{ o.id }}"
+       class="hover:text-blue-600 dark:hover:text-blue-400">
+      {{ o.name }}
+    </a>
+  </td>
+
+  <td class="px-6 py-4 font-mono text-slate-600 dark:text-slate-300">
+    {{ o.host }}
+  </td>
+
+  <td class="px-6 py-4 font-semibold text-slate-700 dark:text-slate-200">
+    {{ o.brand|upper }}
+  </td>
+
+  <!-- STATUS / SYNC -->
+<td class="px-6 py-4 text-center">
+  {% if olt_status[o.id] %}
+  <button type="button"
+          id="sync-btn-{{ o.id }}"
+          onclick="startSync({{ o.id }})"
+          class="inline-flex items-center gap-2
+                 px-4 py-2 rounded-lg
+                 text-sm font-semibold
+                 bg-indigo-600 text-white
+                 hover:bg-indigo-700
+                 shadow-sm
+                 dark:bg-indigo-500 dark:hover:bg-indigo-600">
+
+    <!-- ICON -->
+    <svg class="w-4 h-4" fill="none" stroke="currentColor"
+         viewBox="0 0 24 24" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M4 4v5h5M20 20v-5h-5
+               M5 19a9 9 0 0014-7
+               9 9 0 00-14-7"/>
+    </svg>
+
+    Sync
+  </button>
+  {% else %}
+  <span class="inline-flex items-center gap-2
+               px-4 py-2 rounded-lg
+               text-sm font-semibold
+               bg-slate-200 text-slate-500
+               dark:bg-slate-700 dark:text-slate-400">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor"
+         viewBox="0 0 24 24" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M18.364 5.636L5.636 18.364
+               M5.636 5.636l12.728 12.728"/>
+    </svg>
+    Offline
+  </span>
+  {% endif %}
+</td>
+
+
+<td class="px-6 py-4 text-center">
+  <div class="inline-flex gap-2">
+
+    <!-- DETAIL -->
+    <a href="/olt/{{ o.id }}"
+       class="inline-flex items-center gap-2
+              px-3 py-2 rounded-lg
+              text-xs font-bold
+              bg-blue-600 text-white
+              hover:bg-blue-700
+              shadow-sm">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor"
+           viewBox="0 0 24 24" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M15 12H9m12 0a9 9 0 11-18 0
+                 9 9 0 0118 0z"/>
+      </svg>
+      Detail
+    </a>
+
+    <!-- EDIT -->
+    <a href="/olt/{{ o.id }}/edit"
+       class="inline-flex items-center gap-2
+              px-3 py-2 rounded-lg
+              text-xs font-bold
+              bg-amber-500 text-white
+              hover:bg-amber-600
+              shadow-sm">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor"
+           viewBox="0 0 24 24" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M11 5h2M12 7v10m8-4a8 8 0 11-16 0
+                 8 8 0 0116 0z"/>
+      </svg>
+      Edit
+    </a>
+
+    <!-- DELETE -->
+    <button type="button"
+            onclick="openDeleteModal('{{ o.id }}','{{ o.name }}')"
+            class="inline-flex items-center gap-2
+                   px-3 py-2 rounded-lg
+                   text-xs font-bold
+                   bg-red-600 text-white
+                   hover:bg-red-700
+                   shadow-sm">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor"
+           viewBox="0 0 24 24" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+      Hapus
+    </button>
+
+  </div>
+</td>
+
+
+
+</tr>
+{% endfor %}
+
+{% if olts|length == 0 %}
+<tr>
+  <td colspan="5"
+      class="px-6 py-12 text-center
+             text-slate-400 dark:text-slate-500">
+    Belum ada OLT
+  </td>
+</tr>
+{% endif %}
+</tbody>
+</table>
+</div>
+
+<!-- ================= SYNC MODAL ================= -->
+<div id="syncModal" class="fixed inset-0 hidden z-50 items-center justify-center">
+  <div class="absolute inset-0 bg-black/40"></div>
+  <div class="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md p-6 relative">
+    <h3 class="text-lg font-bold mb-2">Sinkronisasi OLT</h3>
+    <p id="syncMessage" class="text-sm text-slate-500 mb-4">Memulai...</p>
+    <div class="w-full bg-slate-200 dark:bg-slate-700 h-3 rounded">
+      <div id="syncBar" class="bg-blue-500 h-3 rounded" style="width:0%"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= DELETE MODAL ================= -->
+<div id="deleteModal"
+     class="fixed inset-0 hidden z-50 items-center justify-center">
+
+  <div class="absolute inset-0 bg-black/40"
+       onclick="closeDeleteModal()"></div>
+
+  <div class="relative bg-white dark:bg-slate-800
+              rounded-2xl shadow-xl
+              w-full max-w-md p-6">
+
+    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100">
+      Hapus OLT
+    </h3>
+
+    <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+      Yakin ingin menghapus OLT:
+      <span id="deleteOltName"
+            class="font-semibold text-red-600"></span> ?
+    </p>
+
+    <p class="mt-1 text-xs text-slate-500">
+      ⚠ Semua ONT yang terhubung akan ikut terhapus.
+    </p>
+
+    <div class="mt-6 flex justify-end gap-3">
+      <button type="button"
+              onclick="closeDeleteModal()"
+              class="px-4 py-2 rounded-lg
+                     bg-slate-200 hover:bg-slate-300
+                     dark:bg-slate-700 dark:hover:bg-slate-600">
+        Batal
+      </button>
+
+      <form id="deleteForm" method="post">
+        <button type="submit"
+                class="px-4 py-2 rounded-lg
+                       bg-red-600 hover:bg-red-700
+                       text-white font-semibold">
+          Ya, Hapus
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ================= SCRIPT (LOGIC TETAP) ================= -->
+<script>
+let syncTimer = null
+let currentOltId = null
+let currentBtn = null
+
+function startSync(oltId) {
+  currentOltId = oltId
+  currentBtn = document.getElementById(`sync-btn-${oltId}`)
+
+  if (currentBtn) {
+    currentBtn.disabled = true
+    currentBtn.classList.add("opacity-70", "cursor-not-allowed")
+    currentBtn.innerText = "Syncing..."
+  }
+
+  openSyncModal()
+  document.getElementById("syncMessage").innerText = "Menghubungi OLT..."
+  document.getElementById("syncBar").style.width = "5%"
+
+  fetch(`/olt/${oltId}/sync`, { method: "POST" })
+  syncTimer = setInterval(checkSyncStatus, 1000)
+}
+
+function checkSyncStatus() {
+  fetch(`/olt/${currentOltId}/sync/status`)
+    .then(r => r.json())
+    .then(data => {
+
+      document.getElementById("syncMessage").innerText =
+        data.message || "Proses sinkronisasi..."
+
+      let percent = Math.round((data.current / data.total) * 100)
+      document.getElementById("syncBar").style.width = percent + "%"
+
+      if (data.status === "done") {
+        clearInterval(syncTimer)
+
+        document.getElementById("syncMessage").innerHTML = `
+          <span class="text-emerald-600 font-semibold">
+            ✔ Sinkronisasi Berhasil
+          </span><br>
+          <span class="text-sm text-slate-600">
+            ${data.message || ''}
+          </span>
+        `
+
+        const bar = document.getElementById("syncBar")
+        bar.style.width = "100%"
+        bar.classList.replace("bg-blue-500","bg-emerald-500")
+
+        if (currentBtn) {
+          currentBtn.innerHTML = `
+            <span class="flex flex-col leading-tight">
+              <span class="font-semibold text-emerald-600">✔ Berhasil</span>
+              <span class="text-[11px] text-slate-500">
+                ${data.message || ''}
+              </span>
+            </span>
+          `
+          currentBtn.className =
+            "inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm " +
+            "bg-emerald-100 text-emerald-700 cursor-default"
+        }
+
+        setTimeout(() => location.reload(), 2500)
+      }
+
+      if (data.status === "error") {
+        clearInterval(syncTimer)
+        document.getElementById("syncMessage").innerText =
+          "❌ Sinkronisasi gagal"
+      }
+    })
+}
+
+function openSyncModal() {
+  const modal = document.getElementById("syncModal")
+  modal.classList.remove("hidden")
+  modal.classList.add("flex")
+}
+
+
+
+function openDeleteModal(oltId, oltName) {
+  const modal = document.getElementById("deleteModal")
+  const nameEl = document.getElementById("deleteOltName")
+  const form = document.getElementById("deleteForm")
+
+  nameEl.textContent = oltName
+  form.action = `/olt/${oltId}/delete`
+
+  modal.classList.remove("hidden")
+  modal.classList.add("flex")
+}
+
+function closeDeleteModal() {
+  const modal = document.getElementById("deleteModal")
+  modal.classList.add("hidden")
+  modal.classList.remove("flex")
+}
+
+
+
+</script>
+
+{% endblock %}

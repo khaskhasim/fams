@@ -1,0 +1,143 @@
+{% extends "layout.html" %}
+{% block title %}Tambah OLT{% endblock %}
+
+{% block content %}
+
+<!-- ================= HEADER ================= -->
+<div class="mb-8">
+  <h1 class="text-3xl font-extrabold
+             bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400
+             bg-clip-text text-transparent">
+    Tambah OLT Baru
+  </h1>
+  <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+    Tambahkan perangkat OLT agar diproses oleh sistem monitoring
+  </p>
+</div>
+
+<!-- ================= SUCCESS MESSAGE ================= -->
+{% if success %}
+<div class="mb-6 rounded-xl
+            bg-emerald-100 text-emerald-700
+            px-4 py-3 font-semibold">
+  ✔ OLT berhasil ditambahkan
+</div>
+{% endif %}
+
+<!-- ================= FORM CARD ================= -->
+<div class="max-w-3xl rounded-2xl
+            bg-white dark:bg-slate-800
+            border border-slate-200 dark:border-slate-700
+            shadow-xl p-6">
+
+  <form method="post"
+        class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    <!-- NAMA -->
+    <div>
+      <label class="block text-sm font-semibold mb-1">
+        Nama OLT
+      </label>
+      <input type="text" name="name" required
+             placeholder="OLT BLITAR 01"
+             class="w-full px-4 py-2 rounded-lg
+                    border border-slate-300
+                    focus:ring-2 focus:ring-blue-500
+                    focus:outline-none">
+    </div>
+
+    <!-- HOST -->
+    <div>
+      <label class="block text-sm font-semibold mb-1">
+        Host (IP / IP:Port)
+      </label>
+      <input type="text" name="host" required
+             placeholder="172.16.94.2"
+             class="w-full px-4 py-2 rounded-lg
+                    border border-slate-300
+                    focus:ring-2 focus:ring-blue-500
+                    focus:outline-none">
+    </div>
+
+    <!-- USERNAME -->
+    <div>
+      <label class="block text-sm font-semibold mb-1">
+        Username
+      </label>
+      <input type="text" name="username" required
+             class="w-full px-4 py-2 rounded-lg
+                    border border-slate-300
+                    focus:ring-2 focus:ring-blue-500
+                    focus:outline-none">
+    </div>
+
+    <!-- PASSWORD -->
+    <div>
+      <label class="block text-sm font-semibold mb-1">
+        Password
+      </label>
+      <input type="password" name="password" required
+             class="w-full px-4 py-2 rounded-lg
+                    border border-slate-300
+                    focus:ring-2 focus:ring-blue-500
+                    focus:outline-none">
+    </div>
+
+    <!-- BRAND -->
+    <div>
+      <label class="block text-sm font-semibold mb-1">
+        Brand OLT
+      </label>
+      <select name="brand"
+              class="w-full px-4 py-2 rounded-lg
+                     border border-slate-300
+                     bg-slate-50">
+        <option value="hioso">HIOSO</option>
+        <option value="vsol">VSOL</option>
+      </select>
+    </div>
+
+    <!-- TYPE -->
+    <div>
+      <label class="block text-sm font-semibold mb-1">
+        Type PON
+      </label>
+      <select name="type"
+              class="w-full px-4 py-2 rounded-lg
+                     border border-slate-300
+                     bg-slate-50">
+        <option value="EPON">EPON</option>
+        <option value="GPON">GPON</option>
+      </select>
+    </div>
+
+    <!-- PON COUNT -->
+    <div>
+      <label class="block text-sm font-semibold mb-1">
+        Jumlah PON
+      </label>
+      <input type="number" name="pon_count" min="1"
+             placeholder="8"
+             class="w-full px-4 py-2 rounded-lg
+                    border border-slate-300
+                    focus:ring-2 focus:ring-blue-500
+                    focus:outline-none">
+    </div>
+
+    <!-- SUBMIT -->
+    <div class="flex items-end justify-end md:col-span-2">
+      <button type="submit"
+              class="inline-flex items-center gap-2
+                     px-8 py-3 rounded-xl
+                     bg-gradient-to-r from-blue-600 to-indigo-600
+                     hover:from-blue-700 hover:to-indigo-700
+                     text-white font-bold shadow-lg">
+        💾 Simpan OLT
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+{% endblock %}

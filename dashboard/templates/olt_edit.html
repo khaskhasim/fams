@@ -1,0 +1,170 @@
+{% extends "layout.html" %}
+{% block title %}Edit OLT{% endblock %}
+
+{% block content %}
+
+<!-- ================= HEADER ================= -->
+<div class="mb-8">
+  <h1 class="text-3xl font-extrabold
+             bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400
+             bg-clip-text text-transparent">
+    Edit OLT
+  </h1>
+  <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+    Perbarui konfigurasi perangkat Optical Line Terminal
+  </p>
+</div>
+
+<!-- ================= FORM CARD ================= -->
+<div class="max-w-4xl rounded-2xl
+            bg-white dark:bg-slate-800
+            border border-slate-200 dark:border-slate-700
+            shadow-xl p-6">
+
+<form method="post"
+      class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+  <!-- NAMA -->
+  <div>
+    <label class="block text-sm font-semibold mb-1">
+      Nama OLT
+    </label>
+    <input
+      name="name"
+      value="{{ olt.name }}"
+      required
+      placeholder="OLT BLITAR 01"
+      class="w-full px-4 py-2 rounded-lg
+             border border-slate-300
+             focus:ring-2 focus:ring-blue-500
+             focus:outline-none text-sm">
+  </div>
+
+  <!-- HOST -->
+  <div>
+    <label class="block text-sm font-semibold mb-1">
+      Alamat / Host
+    </label>
+    <input
+      name="host"
+      value="{{ olt.host }}"
+      required
+      placeholder="172.16.1.1 atau 172.16.1.1:8080"
+      class="w-full px-4 py-2 rounded-lg
+             border border-slate-300
+             focus:ring-2 focus:ring-blue-500
+             focus:outline-none text-sm">
+  </div>
+
+  <!-- USERNAME -->
+  <div>
+    <label class="block text-sm font-semibold mb-1">
+      Username
+    </label>
+    <input
+      name="username"
+      value="{{ olt.username }}"
+      required
+      class="w-full px-4 py-2 rounded-lg
+             border border-slate-300
+             focus:ring-2 focus:ring-blue-500
+             focus:outline-none text-sm">
+  </div>
+
+  <!-- PASSWORD -->
+  <div>
+    <label class="block text-sm font-semibold mb-1">
+      Password
+    </label>
+    <input
+      type="password"
+      name="password"
+      placeholder="Kosongkan jika tidak ingin mengubah"
+      class="w-full px-4 py-2 rounded-lg
+             border border-slate-300
+             focus:ring-2 focus:ring-blue-500
+             focus:outline-none text-sm">
+    <p class="mt-1 text-xs text-slate-400">
+      Biarkan kosong untuk menggunakan password lama
+    </p>
+  </div>
+
+  <!-- BRAND -->
+  <div>
+    <label class="block text-sm font-semibold mb-1">
+      Vendor
+    </label>
+    <select
+      name="brand"
+      class="w-full px-4 py-2 rounded-lg
+             border border-slate-300
+             bg-slate-50 dark:bg-slate-700
+             focus:ring-2 focus:ring-blue-500
+             focus:outline-none text-sm">
+      <option value="hioso" {{ 'selected' if olt.brand=='hioso' }}>HIOSO</option>
+      <option value="vsol" {{ 'selected' if olt.brand=='vsol' }}>VSOL</option>
+    </select>
+  </div>
+
+  <!-- TYPE -->
+  <div>
+    <label class="block text-sm font-semibold mb-1">
+      Teknologi
+    </label>
+    <select
+      name="type"
+      class="w-full px-4 py-2 rounded-lg
+             border border-slate-300
+             bg-slate-50 dark:bg-slate-700
+             focus:ring-2 focus:ring-blue-500
+             focus:outline-none text-sm">
+      <option value="EPON" {{ 'selected' if olt.type=='EPON' }}>EPON</option>
+      <option value="GPON" {{ 'selected' if olt.type=='GPON' }}>GPON</option>
+    </select>
+  </div>
+
+  <!-- PON COUNT -->
+  <div>
+    <label class="block text-sm font-semibold mb-1">
+      Jumlah PON
+    </label>
+    <input
+      type="number"
+      name="pon_count"
+      value="{{ olt.pon_count }}"
+      min="0"
+      class="w-full px-4 py-2 rounded-lg
+             border border-slate-300
+             focus:ring-2 focus:ring-blue-500
+             focus:outline-none text-sm">
+  </div>
+
+  <!-- ACTION -->
+  <div class="flex items-end justify-end gap-3 md:col-span-2">
+
+    <button
+      type="submit"
+      class="inline-flex items-center gap-2
+             px-8 py-3 rounded-xl
+             bg-gradient-to-r from-blue-600 to-indigo-600
+             hover:from-blue-700 hover:to-indigo-700
+             text-white font-bold shadow-lg">
+      💾 Simpan Perubahan
+    </button>
+
+    <a
+      href="/olt/devices"
+      class="inline-flex items-center gap-2
+             px-8 py-3 rounded-xl
+             border border-slate-300
+             text-slate-700 font-semibold
+             hover:bg-slate-100">
+      Batal
+    </a>
+
+  </div>
+
+</form>
+</div>
+
+{% endblock %}

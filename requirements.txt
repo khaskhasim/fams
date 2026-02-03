@@ -1,0 +1,8 @@
+Flask
+gunicorn
+requests
+routeros-api
+pysnmp
+cryptography
+psycopg2-binary
+sqlalchemy

@@ -1,0 +1,297 @@
+{% extends "layout.html" %}
+{% block title %}ONT Bermasalah{% endblock %}
+
+{% block content %}
+
+<!-- ================= HEADER ================= -->
+<div class="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+  <div>
+    <h1 class="text-3xl font-extrabold
+               bg-gradient-to-r from-red-500 via-rose-500 to-orange-500
+               bg-clip-text text-transparent">
+      ONT Bermasalah
+    </h1>
+    <p class="text-sm text-slate-500">
+      ONT offline, power off, atau RX di bawah ambang normal
+    </p>
+  </div>
+
+  <div class="px-5 py-3 rounded-2xl
+              bg-gradient-to-br from-slate-100 to-slate-200
+              text-slate-700 font-bold shadow">
+    Total: {{ rows|length }} ONT
+  </div>
+
+</div>
+
+<!-- ================= SUMMARY ================= -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+
+  <!-- TOTAL BERMASALAH -->
+  <div class="relative overflow-hidden rounded-3xl p-6 text-white shadow-xl
+              bg-gradient-to-br from-red-600 to-rose-600">
+    <div class="text-sm opacity-90">TOTAL BERMASALAH</div>
+    <div class="mt-2 text-4xl font-extrabold">
+      {{ rows|length }}
+    </div>
+
+    <!-- ICON ALERT NETWORK -->
+    <svg class="absolute bottom-4 right-4 w-28 h-28 opacity-15 pointer-events-none"
+         fill="none" stroke="currentColor"
+         viewBox="0 0 24 24" stroke-width="1.2">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M12 9v2m0 4h.01
+               M5.07 19h13.86c1.54 0 2.5-1.67
+               1.73-3L13.73 4
+               c-.77-1.33-2.69-1.33-3.46 0
+               L3.34 16c-.77 1.33.19 3 1.73 3z"/>
+    </svg>
+  </div>
+
+  <!-- STATUS OFFLINE -->
+  <div class="relative overflow-hidden rounded-3xl p-6 text-white shadow-xl
+              bg-gradient-to-br from-slate-600 to-slate-800">
+    <div class="text-sm opacity-90">STATUS OFFLINE</div>
+    <div class="mt-2 text-4xl font-extrabold">
+      {{ rows | selectattr("status","ne","ONLINE") | list | length }}
+    </div>
+
+    <!-- ICON DISCONNECTED NETWORK -->
+    <svg class="absolute bottom-4 right-4 w-28 h-28 opacity-15 pointer-events-none"
+         fill="none" stroke="currentColor"
+         viewBox="0 0 24 24" stroke-width="1.2">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M3 3l18 18
+               M12 3a9 9 0 019 9
+               M3 12a9 9 0 019-9"/>
+    </svg>
+  </div>
+
+  <!-- RX LOW -->
+  <div class="relative overflow-hidden rounded-3xl p-6 text-white shadow-xl
+              bg-gradient-to-br from-orange-500 to-red-600">
+    <div class="text-sm opacity-90">RX &lt; -25 dBm</div>
+    <div class="mt-2 text-4xl font-extrabold">
+      {{ rows
+        | selectattr("rx_power","ne",none)
+        | selectattr("rx_power","lt",-25)
+        | list
+        | length
+      }}
+    </div>
+
+    <!-- ICON SIGNAL LOW -->
+    <svg class="absolute bottom-4 right-4 w-28 h-28 opacity-15 pointer-events-none"
+         fill="none" stroke="currentColor"
+         viewBox="0 0 24 24" stroke-width="1.2">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M2 20h2
+               M6 16h2
+               M10 12h2
+               M14 8h2
+               M18 4h2"/>
+    </svg>
+  </div>
+
+</div>
+
+
+<!-- =================================================
+     MOBILE CARD MODE (HP)
+================================================= -->
+<div class="md:hidden space-y-4">
+
+{% for o in rows %}
+<div class="rounded-2xl p-4 shadow-lg border
+            {% if o.status != 'ONLINE' or (o.rx_power is not none and o.rx_power < -25) %}
+              bg-red-50 border-red-200
+            {% else %}
+              bg-white border-slate-200
+            {% endif %}">
+
+  <div class="flex justify-between items-start mb-2">
+    <div>
+      <div class="font-bold text-slate-800">
+        {{ o.name or 'ONU ' ~ o.onu_id }}
+      </div>
+      <div class="text-xs text-slate-500">
+        {{ o.olt_name }} • PON {{ o.pon }} : {{ o.onu_id }}
+      </div>
+    </div>
+
+    <span class="px-3 py-1 rounded-full text-xs font-bold
+      {% if o.status == 'ONLINE' %}
+        bg-emerald-100 text-emerald-700
+      {% else %}
+        bg-red-100 text-red-700
+      {% endif %}">
+      {{ o.status }}
+    </span>
+  </div>
+
+  <div class="text-sm space-y-2">
+    <div class="flex justify-between">
+      <span class="text-slate-500">RX Power</span>
+      <span class="font-bold
+        {% if o.rx_power is not none and o.rx_power < -25 %}
+          text-red-600
+        {% elif o.rx_power is not none and o.rx_power < -23 %}
+          text-yellow-600
+        {% else %}
+          text-emerald-600
+        {% endif %}">
+        {{ "%.2f"|format(o.rx_power) if o.rx_power is not none else '-' }} dBm
+      </span>
+    </div>
+
+    <div class="flex justify-between">
+      <span class="text-slate-500">Diagnosis</span>
+      <span class="font-semibold text-slate-700">
+        {{ o.diagnosis.replace("_"," ").title() if o.diagnosis else '-' }}
+      </span>
+    </div>
+
+    <div class="flex justify-between text-xs text-slate-400 pt-1">
+      <span>Last Update</span>
+      <span>{{ o.last_update }}</span>
+    </div>
+  </div>
+
+  <button
+    onclick="toggleTelegram({{ o.olt_id }},'{{ o.pon }}','{{ o.onu_id }}',this)"
+    class="mt-3 w-full py-2 rounded-xl text-xs font-bold shadow
+           {% if o.alert_telegram %}
+             bg-gradient-to-r from-emerald-500 to-green-600 text-white
+           {% else %}
+             bg-gradient-to-r from-slate-300 to-slate-400 text-slate-800
+           {% endif %}">
+    {% if o.alert_telegram %} 🔔 Telegram ON {% else %} 🔕 Telegram OFF {% endif %}
+  </button>
+
+</div>
+{% endfor %}
+
+{% if rows|length == 0 %}
+<div class="text-center text-emerald-600 font-bold py-10">
+  🎉 Tidak ada ONT bermasalah
+</div>
+{% endif %}
+</div>
+
+<!-- =================================================
+     DESKTOP TABLE MODE
+================================================= -->
+<div class="hidden md:block rounded-3xl overflow-hidden shadow-xl
+            bg-white dark:bg-slate-800
+            border border-slate-200 dark:border-slate-700">
+
+<div class="overflow-x-auto max-h-[65vh] overflow-y-auto">
+
+<table class="w-full text-sm">
+
+<thead class="sticky top-0 z-10
+              bg-gradient-to-r from-slate-100 to-slate-200
+              dark:from-slate-900 dark:to-slate-900
+              text-xs uppercase
+              text-slate-500 dark:text-slate-400">
+<tr>
+  <th class="px-6 py-4 text-left">OLT</th>
+  <th class="px-6 py-4 text-left">PON : ONU</th>
+  <th class="px-6 py-4 text-left">Nama</th>
+  <th class="px-6 py-4 text-center">Status</th>
+  <th class="px-6 py-4 text-right">RX Power</th>
+  <th class="px-6 py-4 text-left">Diagnosis</th>
+  <th class="px-6 py-4 text-center">Telegram</th>
+  <th class="px-6 py-4 text-center">Last Update</th>
+</tr>
+</thead>
+
+<tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+
+{% for o in rows %}
+<tr class="
+  {% if o.status != 'ONLINE' or (o.rx_power is not none and o.rx_power < -25) %}
+    bg-red-50/60 dark:bg-red-500/10
+  {% else %}
+    hover:bg-slate-50 dark:hover:bg-slate-700
+  {% endif %}
+">
+
+<td class="px-6 py-3 font-bold text-slate-800 dark:text-slate-100">
+  {{ o.olt_name }}
+</td>
+
+<td class="px-6 py-3 font-mono text-slate-600 dark:text-slate-300">
+  {{ o.pon }} : {{ o.onu_id }}
+</td>
+
+<td class="px-6 py-3 text-slate-700 dark:text-slate-200">
+  {{ o.name or '-' }}
+</td>
+
+<td class="px-6 py-3 text-center">
+  <span class="px-3 py-1 rounded-full text-xs font-bold
+    {% if o.status == 'ONLINE' %}
+      bg-emerald-100 text-emerald-700
+      dark:bg-emerald-500/20 dark:text-emerald-400
+    {% else %}
+      bg-red-100 text-red-700
+      dark:bg-red-500/20 dark:text-red-400
+    {% endif %}">
+    {{ o.status }}
+  </span>
+</td>
+
+<td class="px-6 py-3 text-right font-bold
+           text-slate-700 dark:text-slate-200">
+  {{ "%.2f"|format(o.rx_power) if o.rx_power is not none else '-' }} dBm
+</td>
+
+<td class="px-6 py-3 font-semibold
+           text-slate-700 dark:text-slate-300">
+  {{ o.diagnosis.replace("_"," ").title() if o.diagnosis else '-' }}
+</td>
+
+<td class="px-6 py-3 text-center">
+  <button onclick="toggleTelegram({{ o.olt_id }},'{{ o.pon }}','{{ o.onu_id }}',this)"
+          class="px-4 py-1.5 rounded-full text-xs font-bold shadow
+          {% if o.alert_telegram %}
+            bg-gradient-to-r from-emerald-500 to-green-600 text-white
+          {% else %}
+            bg-gradient-to-r from-slate-300 to-slate-400
+            dark:from-slate-600 dark:to-slate-700
+            text-slate-800 dark:text-slate-200
+          {% endif %}">
+    {% if o.alert_telegram %} 🔔 ON {% else %} 🔕 OFF {% endif %}
+  </button>
+</td>
+
+<td class="px-6 py-3 text-xs
+           text-slate-500 dark:text-slate-400
+           text-center">
+  {{ o.last_update }}
+</td>
+
+</tr>
+{% endfor %}
+
+</tbody>
+</table>
+</div>
+</div>
+
+
+<!-- ================= JS ================= -->
+<script>
+function toggleTelegram(oltId, pon, onuId, btn) {
+  fetch(`/ont/${oltId}/${pon}/${onuId}/toggle-telegram`, { method: "POST" })
+    .then(r => r.json())
+    .then(d => {
+      if (!d.success) return;
+      location.reload();
+    });
+}
+</script>
+
+{% endblock %}

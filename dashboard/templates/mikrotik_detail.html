@@ -1,0 +1,173 @@
+{% extends "layout.html" %}
+{% block title %}{{ router.name }}{% endblock %}
+
+{% block content %}
+
+<!-- ================= HEADER ================= -->
+<div class="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+  <div class="flex items-center gap-4">
+    <a href="/mikrotik"
+       class="flex items-center justify-center
+              w-10 h-10 rounded-xl
+              bg-gradient-to-br from-slate-200 to-slate-300
+              hover:from-slate-300 hover:to-slate-400
+              text-slate-700 font-bold">
+      ←
+    </a>
+
+    <div>
+      <h1 class="text-3xl font-extrabold
+                 bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400
+                 bg-clip-text text-transparent
+                 flex items-center gap-3">
+        {{ router.name }}
+        <span id="conn-status"
+              class="inline-flex items-center gap-1
+                     px-4 py-1.5 rounded-full
+                     bg-gradient-to-r from-emerald-500 to-green-600
+                     text-white text-xs font-bold shadow">
+          ● CONNECTED
+        </span>
+      </h1>
+
+      <div class="flex flex-wrap items-center gap-4
+                  text-sm text-slate-500 mt-1">
+        <span class="inline-flex items-center gap-1">👤 {{ router.api_user }}</span>
+        <span class="inline-flex items-center gap-1">🌐 {{ router.host }}:{{ router.api_port }}</span>
+        <span class="inline-flex items-center gap-1">🖥️ <span id="board">-</span></span>
+      </div>
+    </div>
+  </div>
+
+  <button onclick="loadData()"
+          class="inline-flex items-center gap-2
+                 px-5 py-2.5 rounded-xl
+                 bg-gradient-to-r from-indigo-600 to-blue-600
+                 hover:from-indigo-700 hover:to-blue-700
+                 text-white font-bold shadow-lg">
+    ⟳ Refresh
+  </button>
+
+</div>
+
+<!-- ================= METRIC CARDS ================= -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+
+  <!-- CPU -->
+  <div class="rounded-3xl p-6 text-white shadow-xl
+              bg-gradient-to-br from-emerald-500 to-green-600">
+    <div class="text-sm opacity-90">CPU LOAD</div>
+    <div id="cpu" class="text-4xl font-extrabold mt-1">-</div>
+
+    <div class="mt-4 h-2 bg-white/30 rounded-full overflow-hidden">
+      <div id="cpu-bar"
+           class="h-full bg-white transition-all"
+           style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- MEMORY -->
+  <div class="rounded-3xl p-6 text-white shadow-xl
+              bg-gradient-to-br from-blue-500 to-indigo-600">
+    <div class="text-sm opacity-90">MEMORY USAGE</div>
+    <div id="memory" class="text-4xl font-extrabold mt-1">-</div>
+
+    <div class="mt-4 h-2 bg-white/30 rounded-full overflow-hidden">
+      <div id="mem-bar"
+           class="h-full bg-white transition-all"
+           style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- UPTIME -->
+  <div class="rounded-3xl p-6 text-white shadow-xl
+              bg-gradient-to-br from-purple-500 to-fuchsia-600">
+    <div class="text-sm opacity-90">SYSTEM UPTIME</div>
+    <div id="uptime" class="text-lg font-bold mt-1 leading-snug">-</div>
+    <div id="version" class="text-xs opacity-90 mt-2">-</div>
+  </div>
+
+  <!-- ROUTER TIME -->
+  <div class="rounded-3xl p-6 text-white shadow-xl
+              bg-gradient-to-br from-amber-500 to-orange-600">
+    <div class="text-sm opacity-90">ROUTER TIME</div>
+    <div id="router-time" class="text-lg font-bold mt-1">-</div>
+    <div class="text-xs opacity-90 mt-2">🌐 Synced</div>
+  </div>
+
+</div>
+
+<!-- ================= SUMMARY ================= -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+  <!-- PPPoE -->
+  <div class="rounded-3xl p-6 shadow-xl
+              bg-gradient-to-br from-blue-600 to-indigo-700
+              text-white flex items-center gap-4">
+    <div class="w-16 h-16 rounded-2xl
+                bg-white/20
+                flex items-center justify-center
+                text-2xl font-extrabold">
+      PPP
+    </div>
+    <div>
+      <div id="pppoe-count" class="text-4xl font-extrabold">-</div>
+      <div class="text-sm opacity-90">
+        TOTAL PPPoE ACTIVE
+      </div>
+    </div>
+  </div>
+
+  <!-- USERS -->
+  <div class="rounded-3xl p-6 shadow-xl
+              bg-gradient-to-br from-amber-500 to-orange-600
+              text-white flex items-center gap-4">
+    <div class="w-16 h-16 rounded-2xl
+                bg-white/20
+                flex items-center justify-center
+                text-2xl font-extrabold">
+      U
+    </div>
+    <div>
+      <div class="text-4xl font-extrabold">0</div>
+      <div class="text-sm opacity-90">
+        TOTAL USERS
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= REALTIME SCRIPT (LOGIC TETAP) ================= -->
+<script>
+async function loadData() {
+  try {
+    const res = await fetch("/api/mikrotik/{{ router_id }}/realtime");
+    const d = await res.json();
+
+    document.getElementById("cpu").innerText = d.cpu + "%";
+    document.getElementById("cpu-bar").style.width = d.cpu + "%";
+
+    document.getElementById("memory").innerText = d.memory + "%";
+    document.getElementById("mem-bar").style.width = d.memory + "%";
+
+    document.getElementById("uptime").innerText = d.uptime;
+    document.getElementById("version").innerText = "Ver: " + d.version;
+    document.getElementById("router-time").innerText = d.router_time;
+    document.getElementById("board").innerText = d.board;
+
+    document.getElementById("conn-status").innerHTML =
+      '<span class="inline-flex items-center gap-1 px-4 py-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-green-600 text-white text-xs font-bold shadow">● CONNECTED</span>';
+
+  } catch (err) {
+    document.getElementById("conn-status").innerHTML =
+      '<span class="inline-flex items-center gap-1 px-4 py-1.5 rounded-full bg-gradient-to-r from-red-500 to-rose-600 text-white text-xs font-bold shadow">● DISCONNECTED</span>';
+  }
+}
+
+loadData();
+setInterval(loadData, 10000);
+</script>
+
+{% endblock %}

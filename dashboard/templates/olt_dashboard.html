@@ -1,0 +1,244 @@
+{% extends "layout.html" %}
+{% block title %}OLT Dashd{% endblock %}
+
+{% block content %}
+
+<!-- ================= HEADER ================= -->
+<div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+  <div class="flex items-center gap-3">
+    <a href="/olt/devices"
+       class="text-slate-400 hover:text-slate-700 text-2xl">←</a>
+
+    <div>
+      <h1 class="text-3xl font-extrabold
+                 bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400
+                 bg-clip-text text-transparent flex items-center gap-3">
+        OLT Detail
+        {% if olt %}
+        <span class="px-3 py-1 rounded-full text-xs font-bold
+                     bg-emerald-100 text-emerald-700">
+          ● ONLINE
+        </span>
+        {% endif %}
+      </h1>
+      <p class="text-sm text-slate-500">
+        {{ olt.brand }} / {{ olt.type }} • {{ olt.host }}
+      </p>
+    </div>
+  </div>
+
+  <a href=""
+     class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl
+            bg-slate-100 hover:bg-slate-200 font-semibold">
+    ⟳ Refresh
+  </a>
+</div>
+
+<!-- ================= SUMMARY ================= -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+
+  <div class="rounded-2xl p-6 text-white shadow-lg
+              bg-gradient-to-br from-blue-500 to-indigo-600">
+    <div class="text-sm opacity-90">Total ONU</div>
+    <div class="mt-2 text-4xl font-bold">{{ total }}</div>
+  </div>
+
+  <div class="rounded-2xl p-6 text-white shadow-lg
+              bg-gradient-to-br from-emerald-500 to-green-600">
+    <div class="text-sm opacity-90">ONU Online</div>
+    <div class="mt-2 text-4xl font-bold">{{ online }}</div>
+  </div>
+
+  <div class="rounded-2xl p-6 text-white shadow-lg
+              bg-gradient-to-br from-red-500 to-rose-600">
+    <div class="text-sm opacity-90">ONU Offline</div>
+    <div class="mt-2 text-4xl font-bold">{{ offline }}</div>
+  </div>
+
+</div>
+
+<!-- ================= FILTER ================= -->
+<div class="bg-white rounded-2xl p-5 shadow-sm border
+            flex flex-col lg:flex-row
+            items-start lg:items-center
+            justify-between gap-5 mb-8">
+
+  <!-- LEFT FILTER -->
+  <form method="get"
+        class="flex flex-wrap items-center gap-4">
+
+    <span class="text-slate-400 font-semibold whitespace-nowrap">
+      Filter
+    </span>
+
+    <!-- STATUS -->
+    <select name="status"
+            onchange="this.form.submit()"
+            class="min-w-[180px] px-4 py-2 pr-10
+                   rounded-lg border bg-slate-50 text-sm
+                   focus:ring-2 focus:ring-blue-500">
+      <option value="ALL">Semua Status</option>
+      <option value="ONLINE" {{ 'selected' if status_filter=='ONLINE' }}>Online</option>
+      <option value="OFFLINE" {{ 'selected' if status_filter=='OFFLINE' }}>Offline</option>
+    </select>
+
+    <!-- PON -->
+    <select name="pon"
+            onchange="this.form.submit()"
+            class="min-w-[180px] px-4 py-2 pr-10
+                   rounded-lg border bg-slate-50 text-sm
+                   focus:ring-2 focus:ring-blue-500">
+      <option value="ALL">Semua PON</option>
+      {% for pon in pon_list %}
+      <option value="{{ pon }}"
+        {{ 'selected' if pon_filter|string == pon|string }}>
+        PON {{ pon }}
+      </option>
+      {% endfor %}
+    </select>
+
+    <input type="hidden" name="page" value="1">
+  </form>
+
+  <!-- SEARCH -->
+  <div class="w-full lg:w-auto">
+    <input type="text"
+           placeholder="Cari Nama / SN / ONU ID"
+           class="w-full lg:w-[320px]
+                  px-4 py-2
+                  rounded-lg border bg-slate-50 text-sm
+                  focus:ring-2 focus:ring-blue-500">
+  </div>
+
+</div>
+
+<!-- =================================================
+     MOBILE CARD ONU (HANYA MOBILE)
+================================================= -->
+<div class="md:hidden space-y-4">
+
+{% for o in rows %}
+<div class="rounded-2xl p-4 shadow-lg border
+            {% if o.status != 'ONLINE' %}
+              bg-red-50 border-red-200
+            {% else %}
+              bg-white border-slate-200
+            {% endif %}">
+
+  <div class="flex justify-between items-start mb-3">
+    <div>
+      <div class="font-bold text-slate-800">
+        {{ o.name or 'ONU ' ~ o.onu_id }}
+      </div>
+      <div class="text-xs text-slate-500">
+        PON {{ o.pon }} : {{ o.onu_id }}
+      </div>
+    </div>
+
+    <span class="px-3 py-1 rounded-full text-xs font-bold
+      {% if o.status == 'ONLINE' %}
+        bg-emerald-100 text-emerald-700
+      {% else %}
+        bg-red-100 text-red-700
+      {% endif %}">
+      {{ o.status }}
+    </span>
+  </div>
+
+  <div class="text-sm space-y-2">
+    <div class="flex justify-between">
+      <span class="text-slate-500">MAC / SN</span>
+      <span class="font-mono text-slate-700">{{ o.mac or '-' }}</span>
+    </div>
+
+    <div class="flex justify-between">
+      <span class="text-slate-500">RX Power</span>
+      <span class="font-bold
+        {% if o.rx_power is not none and o.rx_power < -24 %}
+          text-red-600
+        {% elif o.rx_power is not none and o.rx_power < -23 %}
+          text-yellow-500
+        {% else %}
+          text-emerald-600
+        {% endif %}">
+        {{ "%.2f"|format(o.rx_power) if o.rx_power is not none else '-' }} dBm
+      </span>
+    </div>
+
+    <div class="flex justify-between text-xs text-slate-400">
+      <span>Last Update</span>
+      <span>{{ o.last_update or '-' }}</span>
+    </div>
+  </div>
+
+</div>
+{% endfor %}
+
+{% if rows|length == 0 %}
+<div class="text-center text-slate-400 py-10">
+  Tidak ada data ONU
+</div>
+{% endif %}
+</div>
+
+<!-- =================================================
+     DESKTOP TABLE ONU (HANYA DESKTOP)
+================================================= -->
+<div class="hidden md:block bg-white rounded-2xl shadow-sm border overflow-hidden">
+
+<table class="w-full text-sm">
+  <thead class="bg-slate-50 text-slate-400 text-xs uppercase">
+    <tr>
+      <th class="px-6 py-4 text-left">ID</th>
+      <th class="px-6 py-4 text-left">Nama</th>
+      <th class="px-6 py-4 text-left">MAC / SN</th>
+      <th class="px-6 py-4 text-center">Status</th>
+      <th class="px-6 py-4 text-right">RX Power</th>
+      <th class="px-6 py-4 text-left">Diagnosis</th>
+    </tr>
+  </thead>
+
+  <tbody class="divide-y">
+  {% for o in rows %}
+  <tr class="hover:bg-slate-50">
+
+    <td class="px-6 py-4 font-mono text-slate-600">
+      {{ o.pon }}:{{ o.onu_id }}
+    </td>
+
+    <td class="px-6 py-4 font-semibold text-slate-800">
+      {{ o.name or "-" }}
+    </td>
+
+    <td class="px-6 py-4 font-mono text-slate-500">
+      {{ o.mac or "-" }}
+    </td>
+
+    <td class="px-6 py-4 text-center">
+      {% if o.status == "ONLINE" %}
+      <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">
+        ✔ Up
+      </span>
+      {% else %}
+      <span class="px-3 py-1 rounded-full bg-red-100 text-red-600 text-xs font-semibold">
+        ✖ Down
+      </span>
+      {% endif %}
+    </td>
+
+    <td class="px-6 py-4 text-right font-semibold">
+      {{ "%.2f"|format(o.rx_power) if o.rx_power is not none else '-' }} dBm
+    </td>
+
+    <td class="px-6 py-4 text-slate-600">
+      {{ o.diagnosis.replace("_"," ").title() if o.diagnosis else '-' }}
+    </td>
+
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+</div>
+
+{% endblock %}
