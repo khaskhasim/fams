@@ -147,17 +147,20 @@ def home():
     # =====================================================
     # ONU SUMMARY
     # =====================================================
-    cur.execute("SELECT COUNT(*) FROM onu_status")
-    ont_total = cur.fetchone()[0]
+    # total onu
+    cur.execute("SELECT COUNT(*) AS total FROM onu_status")
+    ont_total = cur.fetchone()["total"] or 0
 
+    # online onu
     cur.execute("""
-        SELECT COUNT(*) 
-        FROM onu_status 
+        SELECT COUNT(*) AS total
+        FROM onu_status
         WHERE status = 'ONLINE'
     """)
-    ont_online = cur.fetchone()[0]
+    ont_online = cur.fetchone()["total"] or 0
 
     ont_offline = ont_total - ont_online
+
 
     # =====================================================
     # LIST ONU BERMASALAH (TERBARU)
@@ -300,16 +303,21 @@ def olt_onu_by_olt(olt_id):
         return "OLT tidak ditemukan", 404
 
     # ================= SUMMARY =================
-    cur.execute("SELECT COUNT(*) FROM onu_status WHERE olt_id=?", (olt_id,))
-    total = cur.fetchone()[0]
+    cur.execute(
+        "SELECT COUNT(*) AS total FROM onu_status WHERE olt_id=%s",
+        (olt_id,)
+    )
+    total = cur.fetchone()["total"] or 0
 
     cur.execute("""
-        SELECT COUNT(*) FROM onu_status
-        WHERE olt_id=? AND status='ONLINE'
+        SELECT COUNT(*) AS total
+        FROM onu_status
+        WHERE olt_id=%s AND status='ONLINE'
     """, (olt_id,))
-    online = cur.fetchone()[0]
+    online = cur.fetchone()["total"] or 0
 
     offline = total - online
+
 
     # ================= PON LIST =================
     cur.execute("""
@@ -333,12 +341,16 @@ def olt_onu_by_olt(olt_id):
         params.append(pon_filter)
 
     # ================= PAGINATION =================
-    cur.execute(f"SELECT COUNT(*) FROM onu_status {where}", params)
-    total_rows = cur.fetchone()[0]
+    cur.execute(
+        f"SELECT COUNT(*) AS total FROM onu_status {where}",
+        params
+    )
+    total_rows = cur.fetchone()["total"] or 0
     total_pages = (total_rows + PER_PAGE - 1) // PER_PAGE
 
+
     # ================= DATA (RX TERBURUK DI ATAS) =================
-    query = f"""
+    query = f"""`
         SELECT *
         FROM onu_status
         {where}
@@ -1011,14 +1023,15 @@ def ont_problem_list():
 
     # ====== TOTAL ======
     cur.execute(f"""
-        SELECT COUNT(*)
+        SELECT COUNT(*) AS total
         FROM onu_status n
         JOIN olt_devices o ON o.id = n.olt_id
         {where}
     """, params)
 
-    total_rows = cur.fetchone()[0]
+    total_rows = cur.fetchone()["total"] or 0
     total_pages = (total_rows + PER_PAGE - 1) // PER_PAGE
+
 
     # ====== DATA ======
     cur.execute(f"""
