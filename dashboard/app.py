@@ -59,7 +59,8 @@ from auth_routes import auth_bp   # ⬅️ blueprint auth dipisah
 # =====================================================
 app = Flask(__name__)
 #app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret-key")
-app.secret_key = os.environ["31e0d88238362d67e224808d41bbd3b291efa54b153278090fc11b228e3baa4b"]
+#app.secret_key = os.environ["31e0d88238362d67e224808d41bbd3b291efa54b153278090fc11b228e3baa4b"]
+app.secret_key = os.environ["FLASK_SECRET_KEY"]
 
 
 # =====================================================

@@ -26,6 +26,8 @@ services:
       - .env
     ports:
       - "8001:8000"
+environment:
+  FLASK_SECRET_KEY: "0b8dbb3d82a3794f019594373d49f9f59c5dfc96f3f781bc0b4b99e397494540"
 
 volumes:
   pgdata:
