@@ -636,16 +636,21 @@ def mikrotik_devices():
     conn = get_db()
     cur = conn.cursor()
 
-    rows = cur.execute("""
+    cur.execute("""
         SELECT
-            id, name, host,
-            sys_name, sys_uptime,
+            id,
+            name,
+            host,
+            sys_name,
+            sys_uptime,
             last_seen,
-            (strftime('%s','now') - strftime('%s', last_seen)) AS age
+            EXTRACT(EPOCH FROM (NOW() - last_seen))::INT AS age
         FROM mikrotik_devices
         ORDER BY name
-    """).fetchall()
+    """)
+    rows = cur.fetchall()
 
+    cur.close()
     conn.close()
 
     return render_template(
@@ -1028,7 +1033,6 @@ def ont_problem_list():
     conn = get_db()
     cur = conn.cursor()
 
-    # ====== WHERE (FIXED) ======
     where = """
         WHERE
           o.is_active = 1
@@ -1041,22 +1045,20 @@ def ont_problem_list():
     params = []
 
     if status_filter != "ALL":
-        where += " AND n.status = ?"
+        where += " AND n.status = %s"
         params.append(status_filter)
 
-    # ====== TOTAL ======
+    # ===== TOTAL =====
     cur.execute(f"""
-        SELECT COUNT(*) AS total
+        SELECT COUNT(*)
         FROM onu_status n
         JOIN olt_devices o ON o.id = n.olt_id
         {where}
     """, params)
-
-    total_rows = cur.fetchone()["total"] or 0
+    total_rows = cur.fetchone()[0] or 0
     total_pages = (total_rows + PER_PAGE - 1) // PER_PAGE
 
-
-    # ====== DATA ======
+    # ===== DATA =====
     cur.execute(f"""
         SELECT
             o.name AS olt_name,
@@ -1076,10 +1078,12 @@ def ont_problem_list():
         ORDER BY
             n.last_update DESC,
             n.rx_power ASC
-        LIMIT ? OFFSET ?
+        LIMIT %s OFFSET %s
     """, params + [PER_PAGE, offset])
 
     rows = cur.fetchall()
+
+    cur.close()
     conn.close()
 
     return render_template(
@@ -1130,11 +1134,16 @@ def ont_toggle_telegram(olt_id, pon, onu_id):
 @login_required
 def tr069_servers():
     conn = get_db()
-    rows = conn.execute("""
+    cur = conn.cursor()
+
+    cur.execute("""
         SELECT *
         FROM tr069_servers
         ORDER BY name
-    """).fetchall()
+    """)
+    rows = cur.fetchall()
+
+    cur.close()
     conn.close()
 
     return render_template(
@@ -1143,6 +1152,7 @@ def tr069_servers():
         active_page="tr069",
         show_topbar=True
     )
+
 
 @app.route("/tr069/add", methods=["GET", "POST"])
 @login_required
