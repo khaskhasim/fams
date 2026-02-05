@@ -57,7 +57,12 @@ def login():
 # ===============================
 # LOGOUT
 # ===============================
-@auth_bp.route("/logout")
+# ===============================
+# LOGOUT (POST ONLY)
+# ===============================
+@auth_bp.route("/logout", methods=["POST"])
 def logout():
     session.clear()
+    flash("Berhasil logout", "success")
     return redirect("/login")
+
