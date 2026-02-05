@@ -65,4 +65,3 @@ def logout():
     session.clear()
     flash("Berhasil logout", "success")
     return redirect("/login")
-

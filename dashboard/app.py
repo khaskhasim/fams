@@ -1050,12 +1050,14 @@ def ont_problem_list():
 
     # ===== TOTAL =====
     cur.execute(f"""
-        SELECT COUNT(*)
+        SELECT COUNT(*) AS total
         FROM onu_status n
         JOIN olt_devices o ON o.id = n.olt_id
         {where}
     """, params)
-    total_rows = cur.fetchone()[0] or 0
+
+    row = cur.fetchone()
+    total_rows = row["total"] if row else 0
     total_pages = (total_rows + PER_PAGE - 1) // PER_PAGE
 
     # ===== DATA =====
@@ -1136,12 +1138,17 @@ def tr069_servers():
     conn = get_db()
     cur = conn.cursor()
 
-    cur.execute("""
-        SELECT *
-        FROM tr069_servers
-        ORDER BY name
-    """)
-    rows = cur.fetchall()
+    try:
+        cur.execute("""
+            SELECT *
+            FROM tr069_servers
+            ORDER BY name
+        """)
+        rows = cur.fetchall()
+    except Exception as e:
+        # fallback aman
+        rows = []
+        print("TR069 ERROR:", e)
 
     cur.close()
     conn.close()
