@@ -48,7 +48,10 @@ from routeros_api import RouterOsApiPool
 # IMPORT INTERNAL PROJECT
 # =====================================================
 from sync_core import sync_single_olt
-from db.db import get_db, DB_PATH
+
+#from db.db import get_db, DB_PATH
+from db.db import get_db
+
 from auth_routes import auth_bp   # ⬅️ blueprint auth dipisah
 
 # =====================================================
