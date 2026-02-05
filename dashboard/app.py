@@ -58,7 +58,9 @@ from auth_routes import auth_bp   # ⬅️ blueprint auth dipisah
 # INIT FLASK APP
 # =====================================================
 app = Flask(__name__)
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret-key")
+#app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret-key")
+app.secret_key = os.environ["31e0d88238362d67e224808d41bbd3b291efa54b153278090fc11b228e3baa4b"]
+
 
 # =====================================================
 # REGISTER BLUEPRINT
@@ -304,16 +306,18 @@ def olt_onu_by_olt(olt_id):
 
     # ================= SUMMARY =================
     cur.execute(
-        "SELECT COUNT(*) AS total FROM onu_status WHERE olt_id=%s",
+        "SELECT COUNT(*) AS total FROM onu_status WHERE olt_id=?",
         (olt_id,)
     )
+
     total = cur.fetchone()["total"] or 0
 
     cur.execute("""
         SELECT COUNT(*) AS total
         FROM onu_status
-        WHERE olt_id=%s AND status='ONLINE'
+        WHERE olt_id=? AND status='ONLINE'
     """, (olt_id,))
+
     online = cur.fetchone()["total"] or 0
 
     offline = total - online
@@ -350,17 +354,18 @@ def olt_onu_by_olt(olt_id):
 
 
     # ================= DATA (RX TERBURUK DI ATAS) =================
-    query = f"""`
+    query = f"""
         SELECT *
         FROM onu_status
         {where}
         ORDER BY
-          rx_power IS NULL,
-          rx_power ASC,
-          CAST(pon AS INTEGER),
-          CAST(onu_id AS INTEGER)
+        rx_power IS NULL,
+        rx_power ASC,
+        CAST(pon AS INTEGER),
+        CAST(onu_id AS INTEGER)
         LIMIT ? OFFSET ?
     """
+
     cur.execute(query, params + [PER_PAGE, offset])
     rows = cur.fetchall()
 
@@ -516,30 +521,33 @@ def sync_olt(olt_id):
             "message": "OLT tidak ditemukan"
         }), 404
 
-    # init progress
-    sync_progress[olt_id] = {
-        "status": "running",
-        "message": "Menghubungi OLT...",
-        "current": 0,
-        "total": 1
-    }
+    # init progress (AMAN)
+    with sync_lock:
+        sync_progress[olt_id] = {
+            "status": "running",
+            "message": "Menghubungi OLT...",
+            "current": 0,
+            "total": 1
+        }
 
     def run_sync():
         try:
             ok, msg = sync_single_olt(dict(olt))
-            sync_progress[olt_id] = {
-                "status": "done" if ok else "error",
-                "message": msg,
-                "current": 1,
-                "total": 1
-            }
+            with sync_lock:
+                sync_progress[olt_id] = {
+                    "status": "done" if ok else "error",
+                    "message": msg,
+                    "current": 1,
+                    "total": 1
+                }
         except Exception as e:
-            sync_progress[olt_id] = {
-                "status": "error",
-                "message": str(e),
-                "current": 0,
-                "total": 1
-            }
+            with sync_lock:
+                sync_progress[olt_id] = {
+                    "status": "error",
+                    "message": str(e),
+                    "current": 0,
+                    "total": 1
+                }
 
     threading.Thread(target=run_sync, daemon=True).start()
 
@@ -550,18 +558,18 @@ def sync_olt(olt_id):
 
 
 
-
 @app.route("/olt/<int:olt_id>/sync/status")
 @login_required
 def sync_status(olt_id):
-    return jsonify(
-        sync_progress.get(olt_id, {
-            "status": "idle",
-            "message": "",
-            "current": 0,
-            "total": 1
-        })
-    )
+    with sync_lock:
+        return jsonify(
+            sync_progress.get(olt_id, {
+                "status": "idle",
+                "message": "",
+                "current": 0,
+                "total": 1
+            })
+        )
 
 
 @app.route("/pppoe")
@@ -667,7 +675,7 @@ def mikrotik_add():
             request.form["api_pass"],
             request.form["api_port"] or 8728
         ))
-
+        conn.commit()
         conn.close()
 
         flash("Mikrotik berhasil ditambahkan", "success")
@@ -692,7 +700,7 @@ def mikrotik_edit(id):
     router = cur.execute("""
         SELECT *
         FROM mikrotik_devices
-        WHERE id=%s    """, (id,)).fetchone()
+        WHERE id=?    """, (id,)).fetchone()
 
     if not router:
         conn.close()
@@ -718,7 +726,7 @@ def mikrotik_edit(id):
                     api_user=?,
                     api_pass=?,
                     api_port=?
-                WHERE id=%s            """, (
+                WHERE id=?            """, (
                 name, host, snmp_community,
                 api_user, api_pass, api_port, id
             ))
@@ -731,7 +739,7 @@ def mikrotik_edit(id):
                     snmp_community=?,
                     api_user=?,
                     api_port=?
-                WHERE id=%s            """, (
+                WHERE id=?            """, (
                 name, host, snmp_community,
                 api_user, api_port, id
             ))
@@ -759,7 +767,7 @@ def mikrotik_detail(id):
     r = conn.execute("""
         SELECT id, name, host, api_port, api_user
         FROM mikrotik_devices
-        WHERE id=%s    """, (id,)).fetchone()
+        WHERE id=?    """, (id,)).fetchone()
     conn.close()
 
     if not r:
@@ -800,16 +808,16 @@ def mikrotik_test_snmp(id):
     cur = conn.cursor()
 
     row = cur.execute("""
-        SELECT host, snmp_community, snmp_port
+        SELECT host, snmp_community
         FROM mikrotik_devices
-        WHERE id=%s    """, (id,)).fetchone()
+        WHERE id=?    """, (id,)).fetchone()
 
     if not row:
         flash("Mikrotik tidak ditemukan", "error")
         return redirect("/mikrotik")
 
-    host, community, port = row
-
+    host, community = row
+    port = 161
     try:
         def snmp_get(oid):
             it = getCmd(
@@ -840,7 +848,7 @@ def mikrotik_test_snmp(id):
               sys_uptime=?,
               ros_version=?,
               last_seen=CURRENT_TIMESTAMP
-            WHERE id=%s        """, (
+            WHERE id=?        """, (
             sys_descr,
             sys_name,
             int(sys_uptime),
@@ -865,7 +873,8 @@ def mikrotik_realtime(id):
     r = conn.execute("""
         SELECT host, api_user, api_pass, api_port
         FROM mikrotik_devices
-        WHERE id=%s    """, (id,)).fetchone()
+        WHERE id=?    """, (id,)).fetchone()
+    conn.commit()
     conn.close()
 
     if not r:
@@ -912,27 +921,39 @@ def mikrotik_realtime(id):
 @login_required
 def telegram_settings_page():
     conn = get_db()
+    cur = conn.cursor()
 
     if request.method == "POST":
-        enabled = 1 if request.form.get("enabled") else 0
+        enabled = True if request.form.get("enabled") else False
         bot_token = request.form.get("token", "").strip()
         chat_id = request.form.get("chat_id", "").strip()
 
-        conn.execute("""
+        cur.execute("""
             UPDATE alert_telegram
-            SET enabled=?, bot_token=?, chat_id=?, updated_at=datetime('now')
-            WHERE id=1
+            SET
+                enabled = ?,
+                bot_token = ?,
+                chat_id = ?,
+                updated_at = CURRENT_TIMESTAMP
+
+            WHERE id = 1
         """, (enabled, bot_token, chat_id))
+
+        conn.commit()
+        cur.close()
         conn.close()
 
         flash("✅ Konfigurasi Telegram berhasil disimpan!", "success")
         return redirect(url_for("telegram_settings_page"))
 
-    cfg = conn.execute("""
+    cur.execute("""
         SELECT enabled, bot_token, chat_id
         FROM alert_telegram
-        WHERE id=1
-    """).fetchone()
+        WHERE id = 1
+    """)
+    cfg = cur.fetchone()
+
+    cur.close()
     conn.close()
 
     return render_template(
@@ -941,6 +962,7 @@ def telegram_settings_page():
         active_page="settings",
         show_topbar=True
     )
+
 
 @app.route("/settings/telegram/test", methods=["POST"])
 @login_required
@@ -1135,6 +1157,7 @@ def tr069_add():
             request.form["base_url"].rstrip("/"),
             1 if request.form.get("is_active") else 0
         ))
+        conn.commit()
         conn.close()
 
         flash("Server GenieACS berhasil ditambahkan", "success")
@@ -1167,7 +1190,7 @@ def tr069_edit(id):
               name=?,
               base_url=?,
               is_active=?
-            WHERE id=%s        """, (
+            WHERE id=?        """, (
             request.form["name"],
             request.form["base_url"].rstrip("/"),
             1 if request.form.get("is_active") else 0,
@@ -1193,6 +1216,7 @@ def tr069_edit(id):
 def tr069_delete(id):
     conn = get_db()
     conn.execute("DELETE FROM tr069_servers WHERE id=?", (id,))
+    conn.commit()
     conn.close()
 
     flash("Server TR-069 dihapus", "success")
